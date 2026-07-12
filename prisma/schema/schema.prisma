@@ -1,0 +1,19 @@
+// Base config for the multi-file schema (docs/ARCHITECTURE.md §2). One
+// physical database; each module owns its own .prisma file in this folder
+// with its own models, added when that module's Phase 2 slot starts. No
+// module's schema file may declare a `@relation` field pointing at another
+// module's model — cross-module references are IDs only (§4.0, §4.9).
+//
+// Connection URL lives in prisma.config.ts (Prisma 7), not here. The
+// generated client is checked into src/generated/prisma (gitignored),
+// consumed only through PrismaService — see
+// src/shared/infrastructure/prisma/prisma.service.ts.
+generator client {
+  provider     = "prisma-client"
+  output       = "../../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}

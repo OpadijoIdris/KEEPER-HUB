@@ -1,0 +1,22 @@
+// Settings module (docs/ARCHITECTURE.md §4.1). Owned exclusively by
+// src/modules/settings — cross-module references (userId) are IDs only,
+// no @relation into Identity's User model.
+
+model UserPreferences {
+  id                     String   @id @default(uuid())
+  userId                 String   @unique
+  notificationPreferences Json    @default("[]")
+  timezone               String   @default("UTC")
+  updatedAt              DateTime @updatedAt
+
+  @@map("settings_user_preferences")
+}
+
+model PlatformSettings {
+  // Always "singleton" — see PlatformSettings.SINGLETON_ID in the domain layer.
+  id           String   @id
+  featureFlags Json     @default("{}")
+  updatedAt    DateTime @updatedAt
+
+  @@map("settings_platform_settings")
+}

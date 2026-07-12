@@ -1,0 +1,25 @@
+// Identity module (docs/ARCHITECTURE.md §7.1). Owned exclusively by
+// src/modules/identity — no other module's .prisma file may declare a
+// @relation into these models; cross-module references are IDs only.
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  role         String   @default("user")
+  createdAt    DateTime @default(now())
+
+  @@map("identity_users")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("identity_refresh_tokens")
+}
