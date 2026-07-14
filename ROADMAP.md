@@ -23,6 +23,17 @@ read this file first to know where we stopped.
   knowledge of Prisma, KeeperHub, or LangChain — those are all Infrastructure adapters behind
   Ports. Modules (bounded contexts) are isolated and structurally identical.
 - **Timeline**: weeks+ runway — full architectural depth is in scope, not a shortcut version.
+- **Frontend** (added 2026-07-12): minimal dashboard, Vite + React + TypeScript + Tailwind, at
+  `web/` (new top-level sibling folder, same repo — backend stays at root, not restructured).
+  Built in lockstep with the backend: each Phase 2 module gets its matching screen once that
+  module exists, not as one big push at the end.
+
+## Known deferred hardening (tracked, not forgotten)
+
+- **Refresh token → httpOnly cookie**: docs/ARCHITECTURE.md §7.2 specifies this, but Identity
+  (Phase 2.0) ships it as plain JSON in the response body, already tested end-to-end that way.
+  Switching now would mean reopening and re-verifying shipped auth code just because the frontend
+  exists — deferred to a dedicated security-hardening pass instead of done ad hoc here.
 
 ## Modules (bounded contexts, each structurally isolated)
 
@@ -143,6 +154,31 @@ the modules that consume events from execution (notifications, analytics).
 - [ ] 2.7 **Notifications** — event-driven alerts on execution outcomes, delivery channels
 - [ ] 2.8 **Analytics** — transaction/execution analytics, dashboards/query API
 
+### Frontend (`web/`), matched screen-per-backend-module, built right after each lands
+
+- [x] F0 **Scaffold** ✅ (2026-07-14) — Vite + React + TS + Tailwind v4 at `web/`. API client
+      (`apiFetch`) with Bearer-token attach + one-shot auto-refresh-on-401, `AuthProvider`/`useAuth`,
+      `ProtectedRoute`, `Layout` with nav + logout. Backend `main.ts` got `enableCors()` (required,
+      not optional, for a cross-origin dev server to reach the API at all).
+- [x] F1 **Auth** ✅ (2026-07-14) — Login/Register screens, wired to `/auth/login`/`/auth/register`.
+- [x] F2 **Settings** ✅ (2026-07-14) — timezone field + notification-channel checkboxes wired to
+      `/users/:userId/preferences`, read-only feature-flags list from `/feature-flags`.
+      **Verified with a real headless-Chromium run** (Playwright, driver script in scratchpad —
+      no reusable project skill existed yet): register → redirect to /settings → confirmed UTC +
+      email-only defaults → changed timezone → toggled webhook channel → reloaded the page →
+      confirmed both changes persisted server-side → logged out → confirmed redirect to /login.
+      Zero console errors, zero failed/5xx requests. **Caught a real bug this way**: the webhook
+      checkbox had no optimistic update, so `setStatus('saving')` forced a re-render that snapped
+      the controlled checkbox back to its pre-click value until the PATCH resolved — invisible in
+      unit tests, immediately visible as a failed Playwright `.check()` assertion. Fixed.
+- [ ] F3 **Audit log viewer** (matches 2.2)
+- [ ] F4 **Health status page** (matches 2.3)
+- [ ] F5 **Wallet view** (matches 2.4)
+- [ ] F6 **Workflow/execution views** (matches 2.5)
+- [ ] F7 **Agent list/detail + policy config + decision log** (matches 2.6, includes 2.1b AgentPolicy UI)
+- [ ] F8 **Notification preferences/inbox** (matches 2.7)
+- [ ] F9 **Analytics dashboard** (matches 2.8)
+
 Each module task above expands into its own sub-checklist when we start it:
 `design rationale → alternatives/tradeoffs → domain → application → infra adapter → API → tests`.
 
@@ -217,3 +253,13 @@ Each module task above expands into its own sub-checklist when we start it:
   two reusable cross-module guards to the shared kernel (`SelfOrAdminGuard`, `AdminOnlyGuard`)
   rather than one-off logic in this module's controllers, since Notifications will need the same
   "only the resource owner or an admin" check. Next up: Phase 2.2, Audit Logs.
+- 2026-07-12: Repo created on GitHub (OpadijoIdris/KEEPER-HUB), initial commit pushed to `main`
+  covering Phase 0-2.1a. Verified `.env` and all build/generated artifacts were correctly excluded
+  before pushing.
+- 2026-07-13/14: Scoped and built the frontend (`web/`), decided to go in lockstep with backend
+  modules going forward rather than as one push at the end — see "Known deferred hardening" and
+  the Frontend subsection above for what shipped (F0-F2) and the real bug a headless-browser test
+  caught (optimistic-update gap on the notification-channel checkbox). No project run-skill existed
+  for this repo yet, so verification used a throwaway Playwright driver script in scratchpad rather
+  than a committed one — worth generating a proper one via /run-skill-generator if UI verification
+  becomes routine going forward. Next up: Phase 2.2, Audit Logs (+ its matching F3 frontend screen).
