@@ -175,8 +175,11 @@ the modules that consume events from execution (notifications, analytics).
       verification bar applies from here forward, see "Known deferred hardening."
 - [ ] ~~2.3 Health Monitoring~~ — cut to a trivial `/health` liveness check only, folded into
       whichever module ends up owning `main.ts` wiring; not a separate module build (5-day reframe)
-- [ ] 2.4 **Wallet** — KeeperHub agentic wallet: provision + balance check. PaymentAuthorization
-      kept minimal (record the fact, skip elaborate spend-limit-sum querying for now)
+- [x] 2.4 **Wallet** ✅ (2026-08-01) — revised per live KeeperHub reconnaissance: links agentId to
+      the org's existing wallet integration (no provisioning), `PaymentAuthorization` records every
+      decision (always-authorize for now, spend-limit enforcement wired in Day 3 alongside
+      AgentPolicy). `GET /agents/:agentId/wallet` (idempotent link-or-return) and
+      `/wallet/authorizations`. Verified end-to-end against the containerized backend.
 - [ ] 2.5 **KeeperHub Integration** — MCP client adapter: workflow create/execute, poll status,
       action schema discovery. Highest-risk item (real external API, need credentials) — see Day 2
 - [ ] 2.6 **AI** — LangChain agent runner: Agent + Decision entities, rule evaluation, ties
@@ -202,7 +205,10 @@ the modules that consume events from execution (notifications, analytics).
       the controlled checkbox back to its pre-click value until the PATCH resolved — invisible in
       unit tests, immediately visible as a failed Playwright `.check()` assertion. Fixed.
 - [ ] ~~F4 Health status page~~ — cut, a `/health` 200 check is not worth a screen (5-day reframe)
-- [ ] F5 **Wallet view** (matches 2.4)
+- [x] F5 **Wallet view** ✅ (2026-08-01) — agentId lookup form (Agents don't exist until Day 3,
+      so this is lookup-by-id rather than a "your agents" list for now) showing the linked
+      KeeperHub wallet address + integration id, and a payment-authorization history table.
+      Build + lint clean; no per-screen Playwright run per the reduced verification bar.
 - [ ] F6 **Workflow/execution views** (matches 2.5)
 - [ ] F7 **Agent list/detail + policy config + decision log** (matches 2.6, includes 2.1b AgentPolicy UI)
 - [ ] ~~F8 Notifications~~ / ~~F9 Analytics~~ — cut with their backend modules (5-day reframe)
@@ -370,3 +376,15 @@ slack left). Revised lighter per the reconnaissance above.
   Found an existing wallet integration and direct execution primitives (`execute_transfer`,
   `execute_contract_call`, `execute_protocol_action`) that meaningfully shrink Day 1-2 scope
   versus what was assumed when the architecture doc was written. Next up: Day 1, Wallet module.
+- 2026-08-01: Day 1 complete — Wallet module + F5. Local Postgres Windows service had stopped and
+  couldn't be restarted without admin rights; switched local dev to the containerized Postgres
+  (port 5433) instead, which is now the default in `.env.example`. Twice today `node_modules` was
+  found completely missing (once for the backend, once for `web/`) with no clear cause from this
+  session's actions — reinstalled both times (`npm ci` / `npm install`), no data lost since
+  `package-lock.json` was intact, but worth the user checking for anything on this machine
+  (antivirus, disk cleanup tool, etc.) that might be deleting it. Pushed every milestone from
+  today to GitHub per user instruction (Audit Logs, Docker, Wallet — 3 separate commits). Hit a
+  git push permission error (Credential Manager authenticated as a different GitHub account than
+  the repo owner) — user provided a one-time PAT, used inline on the push command only (never
+  written to git config or any file), user to revoke it now that the push succeeded. Next up:
+  Day 2, KeeperHub Integration module.
