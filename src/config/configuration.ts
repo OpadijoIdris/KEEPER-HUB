@@ -12,6 +12,8 @@ export interface AppConfig {
   keeperHub: {
     mcpBaseUrl?: string;
     apiKey?: string;
+    walletAddress?: string;
+    walletIntegrationId?: string;
   };
 }
 
@@ -29,5 +31,7 @@ export default (): AppConfig => ({
   keeperHub: {
     mcpBaseUrl: process.env.KEEPERHUB_MCP_BASE_URL,
     apiKey: process.env.KEEPERHUB_API_KEY,
+    walletAddress: process.env.KEEPERHUB_WALLET_ADDRESS,
+    walletIntegrationId: process.env.KEEPERHUB_WALLET_INTEGRATION_ID,
   },
 });

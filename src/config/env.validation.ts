@@ -13,6 +13,8 @@ export const envValidationSchema = Joi.object({
   // Optional until the KeeperHub Integration / Wallet modules are built (Phase 2).
   KEEPERHUB_MCP_BASE_URL: Joi.string().uri().optional(),
   KEEPERHUB_API_KEY: Joi.string().allow('').optional(),
-  KEEPERHUB_WALLET_SUB_ORG_ID: Joi.string().allow('').optional(),
-  KEEPERHUB_WALLET_HMAC_SECRET: Joi.string().allow('').optional(),
+  // The org's existing KeeperHub wallet integration (see ROADMAP.md "KeeperHub live API
+  // reconnaissance") — not something we provision ourselves, just a reference.
+  KEEPERHUB_WALLET_ADDRESS: Joi.string().allow('').optional(),
+  KEEPERHUB_WALLET_INTEGRATION_ID: Joi.string().allow('').optional(),
 });

@@ -1,0 +1,27 @@
+// Wallet module (docs/ARCHITECTURE.md §4.4, revised per ROADMAP.md "KeeperHub live API
+// reconnaissance" — links to an existing KeeperHub wallet integration, doesn't provision one).
+// Owned exclusively by src/modules/wallet.
+
+model AgentWallet {
+  id                     String   @id @default(uuid())
+  agentId                String   @unique
+  address                String
+  keeperHubIntegrationId String
+  linkedAt               DateTime @default(now())
+
+  @@map("wallet_agent_wallets")
+}
+
+model PaymentAuthorization {
+  id            String   @id @default(uuid())
+  agentWalletId String
+  agentId       String
+  amount        String
+  asset         String
+  status        String
+  reason        String?
+  decidedAt     DateTime @default(now())
+
+  @@index([agentId])
+  @@map("wallet_payment_authorizations")
+}

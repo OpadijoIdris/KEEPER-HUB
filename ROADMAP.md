@@ -22,7 +22,12 @@ read this file first to know where we stopped.
 - **Architecture style**: Hexagonal / Ports & Adapters + DDD tactical patterns. Domain has zero
   knowledge of Prisma, KeeperHub, or LangChain — those are all Infrastructure adapters behind
   Ports. Modules (bounded contexts) are isolated and structurally identical.
-- **Timeline**: weeks+ runway — full architectural depth is in scope, not a shortcut version.
+- **Timeline — REFRAMED 2026-07-15**: originally "weeks+, full architectural depth in scope."
+  Superseded: **5 days of aggressive activeness**, ending 2026-07-20. This does not touch the
+  architecture (hexagonal/ports-adapters, module isolation, DDD tactical patterns all stay —
+  that discipline is what's letting us move this fast without breaking what's already shipped).
+  What changes is scope and per-feature verification depth from here forward. See "5-Day Sprint
+  Plan" below — it supersedes the rest of Phase 2/3/4/5/6's original framing.
 - **Frontend** (added 2026-07-12): minimal dashboard, Vite + React + TypeScript + Tailwind, at
   `web/` (new top-level sibling folder, same repo — backend stays at root, not restructured).
   Built in lockstep with the backend: each Phase 2 module gets its matching screen once that
@@ -34,6 +39,15 @@ read this file first to know where we stopped.
   (Phase 2.0) ships it as plain JSON in the response body, already tested end-to-end that way.
   Switching now would mean reopening and re-verifying shipped auth code just because the frontend
   exists — deferred to a dedicated security-hardening pass instead of done ad hoc here.
+- **Per-feature unit-test suites and per-feature Playwright browser runs**: this was the standard
+  through Audit Logs (2.2)/F3. From here forward (5-day reframe, 2026-07-15) the bar per feature is
+  typecheck + lint + build + a curl/HTTP smoke test — real bugs still get caught cheaply, but we
+  stop paying for exhaustive coverage on every new module. One full Playwright run of the complete
+  demo flow happens once, near the end (Day 5), not per screen.
+- **Notifications and Analytics modules**: cut from hackathon scope entirely (2026-07-15 reframe).
+  Not core to the "AI agent → real on-chain execution" demo story. `EventBusPort`/`AuditEntry`
+  already capture everything either module would need later — adding them back is additive, not
+  a redesign, because the event-driven module boundary was never Notifications/Analytics-specific.
 
 ## Modules (bounded contexts, each structurally isolated)
 
@@ -144,15 +158,31 @@ the modules that consume events from execution (notifications, analytics).
       GET defaults without persisting, PATCH persists both timezone+channel in one round trip,
       GET/PATCH on another user's preferences → 403, unauthenticated → 401, feature-flags readable
       by any authenticated user, write rejected for non-admin → 403.
-- [ ] 2.1b `AgentPolicy` — deferred until 2.6 (AI module) exists, since its ownership check
-      (§7.3) genuinely needs `Agent.ownerId` to resolve against, not a stub
-- [ ] 2.2 **Audit Logs** — append-only event store, correlation with transactions/executions
-- [ ] 2.3 **Health Monitoring** — liveness/readiness, KeeperHub connectivity checks, agent heartbeat
-- [ ] 2.4 **Wallet** — Turnkey-backed agentic wallet provisioning, x402/MPP payment authorization
-- [ ] 2.5 **KeeperHub Integration** — MCP client adapter, workflow CRUD, execute + poll, action schema discovery
-- [ ] 2.6 **AI** — LangChain agent runner, rule evaluation, workflow generation from intent, decision logging
-- [ ] 2.7 **Notifications** — event-driven alerts on execution outcomes, delivery channels
-- [ ] 2.8 **Analytics** — transaction/execution analytics, dashboards/query API
+- [ ] 2.1b `AgentPolicy` — bundled into 2.6 (AI module), needs `Agent.ownerId` to exist first
+- [x] 2.2 **Audit Logs** ✅ (2026-07-15) — `AuditEntry` (leaf aggregate, append-only by omission —
+      no update/delete method exists anywhere in the chain), `AuditEventSubscriber` via the event
+      bus's new `subscribeToAll()`. Required extending the shared `DomainEvent` base with
+      `subject`/`actor`/`severity` declared by the event itself (not guessed later by Audit Logs
+      from an opaque payload — see log entry below), which touched already-shipped Identity code;
+      re-ran Identity's tests to confirm nothing broke. `GET /audit-log` (admin-only, paginated,
+      filterable by correlationId/subjectId/eventType). Verified end-to-end: registered a user,
+      confirmed the resulting `identity.user.registered` event was captured with correct
+      subject/actor/payload, confirmed non-admin → 403, unauthenticated → 401, subjectId filter
+      correctly narrows results.
+- [x] F3 **Audit log viewer** ✅ (2026-07-15) — admin-gated route (`AdminRoute`), filterable/
+      paginated table with an expandable raw-payload row. Build + lint clean; per the 5-day
+      reframe this one didn't get the full Playwright treatment Settings (F2) got — reduced
+      verification bar applies from here forward, see "Known deferred hardening."
+- [ ] ~~2.3 Health Monitoring~~ — cut to a trivial `/health` liveness check only, folded into
+      whichever module ends up owning `main.ts` wiring; not a separate module build (5-day reframe)
+- [ ] 2.4 **Wallet** — KeeperHub agentic wallet: provision + balance check. PaymentAuthorization
+      kept minimal (record the fact, skip elaborate spend-limit-sum querying for now)
+- [ ] 2.5 **KeeperHub Integration** — MCP client adapter: workflow create/execute, poll status,
+      action schema discovery. Highest-risk item (real external API, need credentials) — see Day 2
+- [ ] 2.6 **AI** — LangChain agent runner: Agent + Decision entities, rule evaluation, ties
+      Wallet + KeeperHub Integration together. `AgentPolicy` (2.1b) added here.
+- [ ] ~~2.7 Notifications~~ — cut (5-day reframe, see "Known deferred hardening")
+- [ ] ~~2.8 Analytics~~ — cut (5-day reframe, see "Known deferred hardening")
 
 ### Frontend (`web/`), matched screen-per-backend-module, built right after each lands
 
@@ -171,38 +201,96 @@ the modules that consume events from execution (notifications, analytics).
       checkbox had no optimistic update, so `setStatus('saving')` forced a re-render that snapped
       the controlled checkbox back to its pre-click value until the PATCH resolved — invisible in
       unit tests, immediately visible as a failed Playwright `.check()` assertion. Fixed.
-- [ ] F3 **Audit log viewer** (matches 2.2)
-- [ ] F4 **Health status page** (matches 2.3)
+- [ ] ~~F4 Health status page~~ — cut, a `/health` 200 check is not worth a screen (5-day reframe)
 - [ ] F5 **Wallet view** (matches 2.4)
 - [ ] F6 **Workflow/execution views** (matches 2.5)
 - [ ] F7 **Agent list/detail + policy config + decision log** (matches 2.6, includes 2.1b AgentPolicy UI)
-- [ ] F8 **Notification preferences/inbox** (matches 2.7)
-- [ ] F9 **Analytics dashboard** (matches 2.8)
+- [ ] ~~F8 Notifications~~ / ~~F9 Analytics~~ — cut with their backend modules (5-day reframe)
 
-Each module task above expands into its own sub-checklist when we start it:
-`design rationale → alternatives/tradeoffs → domain → application → infra adapter → API → tests`.
+From here forward: typecheck + lint + build + curl/HTTP smoke test per feature (not full unit
+suites + per-feature Playwright — see "Known deferred hardening"). One full Playwright run of the
+complete demo flow near the end, not per screen.
 
 ---
 
-## Phase 3 — Cross-module integration
+## KeeperHub live API reconnaissance (2026-07-15) — supersedes assumptions in docs/ARCHITECTURE.md
 
-- [ ] 3.1 Event/domain-event wiring between modules (e.g. execution outcome → notification + analytics + audit)
-- [ ] 3.2 End-to-end agent flow: create agent → configure trigger → AI evaluates → KeeperHub executes → audit/notify/analytics update
-- [ ] 3.3 Authorization enforcement across module boundaries
+Got a real `KEEPERHUB_API_KEY`, did the MCP handshake (`initialize` → `notifications/initialized`
+→ `tools/list`) against `https://app.keeperhub.com/mcp`, and called `list_integrations` +
+`list_workflows` against the real org. Three findings that meaningfully simplify the remaining
+build — architecture doc §9.1/§4.4/§4.5 described the assumptions being corrected here, doc
+updates deferred to when those modules are actually touched rather than done speculatively now:
 
-## Phase 4 — Testing
+1. **A wallet integration already exists on this org**: `0xcA7D64a1BFDe573207859E6dC02332c120B35dAe`
+   (type `web3`, `isManaged: false`). We do **not** need to build Turnkey/`@keeperhub/wallet`
+   provisioning ourselves for the demo — Wallet module shrinks to: reference this `integrationId`,
+   track `PaymentAuthorization`/audit records, optionally read balance.
+2. **Direct execution primitives exist outside the workflow graph system**: `execute_transfer`,
+   `execute_contract_call`, and `search_protocol_actions`/`execute_protocol_action` (pre-built DeFi
+   actions across Aave/Compound/Uniswap/Chronicle-Chainlink/Lido/Morpho, addressed as
+   `protocol/action-slug`, e.g. `chronicle/eth-usd-read`, `aave-v3/supply`). **KeeperHub
+   Integration will call these directly rather than constructing `create_workflow` node/edge
+   graphs** — a better fit for an AI agent deciding to act (a direct tool call, not building a
+   graph) and substantially less to implement/validate. `execute_workflow`/`create_workflow` stay
+   available if a demo scenario ever wants a schedule/event-triggered background workflow instead.
+3. **Every execution tool takes an `idempotency_key`** (`execute_workflow`, `execute_transfer`,
+   `execute_contract_call`, `execute_check_and_execute`) — retried with the same key+args within
+   24h returns the original result instead of re-executing; different args on a reused key is a
+   409. This replaces the "check status before retrying" workaround in §9.1 (which assumed no
+   native idempotency support) — we just pass our `Execution.id` as the key. Simpler *and* more
+   correct than what was designed without this knowledge.
+   - Three pre-seeded example workflows on the org (Aave health-factor monitor, large-withdrawal
+     alert, Aave governance alert) are useful reference for real KeeperHub workflow JSON shape if
+     we do end up building one, but aren't part of the critical path.
 
-- [ ] 4.1 Unit tests per domain/application layer
-- [ ] 4.2 Integration tests per infra adapter (real Prisma test DB, KeeperHub testnet/sandbox if available)
-- [ ] 4.3 E2E test of the full agent execution flow
+## 5-Day Sprint Plan (supersedes Phase 3-6 below as the operative plan)
+
+Ends 2026-07-20. Sequenced hardest/riskiest-unknown-first (KeeperHub Integration is a real
+external API we hadn't touched before 2026-07-15 — de-risk it early, not on day 4 when there's no
+slack left). Revised lighter per the reconnaissance above.
+
+- **Day 1** — Wallet (2.4) + F5, now small: reference the existing `integrationId`, no Turnkey
+  provisioning to build. `PaymentAuthorization` tracking + optional balance read.
+- **Day 2** — KeeperHub Integration (2.5) + F6: `KeeperHubClientPort` wrapping the MCP client
+  (session handshake + `execute_transfer`/`execute_contract_call`/`execute_protocol_action` +
+  `get_direct_execution_status`), idempotency key = `Execution.id`.
+- **Day 3** — AI (2.6) + 2.1b AgentPolicy + F7. Wires Wallet + KeeperHub Integration together
+  behind an `Agent`/`Decision` model.
+- **Day 4** — Phase 3 lite: one real end-to-end run of agent create → trigger → AI decision →
+  KeeperHub execution → shows up in the audit trail. Fix whatever breaks (something will).
+- **Day 5** — Buffer (assume Day 1-4 slipped, because they will). Seed data/demo script, README
+  for judges, one full Playwright run of the complete flow, Docker only if time remains — it's the
+  first thing to drop, not lint/typecheck/build.
+
+## Phase 3 — Cross-module integration (folded into 5-Day Sprint Day 4 above)
+
+- [ ] 3.1 Event wiring for the flow that actually ships: execution outcome → audit (Notifications/
+      Analytics wiring cut along with those modules)
+- [ ] 3.2 End-to-end agent flow: create agent → configure trigger → AI evaluates → KeeperHub executes → audit trail updates
+- [ ] 3.3 Authorization enforcement across the modules that ship
+
+## Phase 4 — Testing (superseded — see "Known deferred hardening": fast loop only from 2.2 onward)
+
+- [x] 4.1 Unit tests per domain/application layer — done through 2.2 (Audit Logs), not required per-feature after
+- [ ] 4.2 Integration tests per infra adapter — cut for the hackathon window, revisit post-demo
+- [ ] 4.3 E2E test of the full agent execution flow — the one Playwright run on Day 5
 
 ## Phase 5 — Deployment & DevEx
 
-- [ ] 5.1 Dockerization
-- [ ] 5.2 Environment/secrets management
-- [ ] 5.3 CI pipeline (lint, typecheck, test)
+- [x] 5.1 Dockerization ✅ (2026-07-15, done early — user had Docker available and it removes the
+      local-Postgres dependency entirely) — multi-stage `Dockerfile` (build → runtime, full
+      `node_modules` copied through since `prisma migrate deploy` at container startup needs the
+      `prisma` CLI, a devDependency) + `docker-compose.yml` (postgres + backend). Postgres mapped
+      to host port 5433, not 5432, to avoid clashing with the local Postgres install day-to-day dev
+      still uses. `npm run docker:up`/`docker:down`/`docker:logs`. Verified end-to-end: fresh
+      `docker compose up --build`, migrations ran automatically at container startup, registered a
+      user against the fully containerized stack successfully, unauthenticated request correctly
+      rejected. Frontend intentionally not containerized (bigger lift, smaller payoff for a 5-day
+      window) — local Vite dev server still points at `http://localhost:3000` either way.
+- [ ] 5.2 Environment/secrets management — already have this (`.env` + `SecretsProviderPort` pattern), no new work
+- [ ] 5.3 CI pipeline — cut for the hackathon window
 
-## Phase 6 — Hackathon polish
+## Phase 6 — Hackathon polish (= Day 5 above)
 
 - [ ] 6.1 Seed data / demo scenario script
 - [ ] 6.2 README + architecture diagram for judges
@@ -263,3 +351,22 @@ Each module task above expands into its own sub-checklist when we start it:
   for this repo yet, so verification used a throwaway Playwright driver script in scratchpad rather
   than a committed one — worth generating a proper one via /run-skill-generator if UI verification
   becomes routine going forward. Next up: Phase 2.2, Audit Logs (+ its matching F3 frontend screen).
+- 2026-07-15: Phase 2.2 (Audit Logs) + F3 completed — see entries above. Extended shared
+  `DomainEvent` base with `subject`/`actor`/`severity` (each event declares its own, rather than
+  Audit Logs guessing from an opaque payload) and added `EventBusPort.subscribeToAll()` — both
+  touched Phase 1 shared-kernel code, re-verified nothing broke.
+- 2026-07-15: **Timeline reframed** — see "Confirmed decisions" and "5-Day Sprint Plan" above.
+  User's call: this is a hackathon, it doesn't need to be "entirely good," 5 days of aggressive
+  activeness starting now. Cut Notifications + Analytics modules entirely, cut Health Monitoring
+  to a trivial check, dropped per-feature unit-test-suite + per-feature-Playwright as the standard
+  going forward (fast loop: typecheck/lint/build/curl only). Architecture/module-isolation
+  discipline is unchanged — what's cut is breadth (2 modules) and per-feature verification depth,
+  not the ports-and-adapters structure that's letting us move this fast without breaking what's
+  shipped. Next up: Day 1 of the sprint — Wallet module, pending research into `@keeperhub/wallet`'s
+  actual programmatic surface and a `KEEPERHUB_API_KEY` from the user (currently blank in `.env`).
+- 2026-07-15: Docker containerization done early (user had Docker available) — see Phase 5.1 above.
+  User signed up at app.keeperhub.com and provided a real `KEEPERHUB_API_KEY`. Did live MCP
+  reconnaissance against the real API — see "KeeperHub live API reconnaissance" section above.
+  Found an existing wallet integration and direct execution primitives (`execute_transfer`,
+  `execute_contract_call`, `execute_protocol_action`) that meaningfully shrink Day 1-2 scope
+  versus what was assumed when the architecture doc was written. Next up: Day 1, Wallet module.
