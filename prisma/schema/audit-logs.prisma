@@ -1,0 +1,25 @@
+// Audit Logs module (docs/ARCHITECTURE.md §4.2, §10.1). Owned exclusively by
+// src/modules/audit-logs. Append-only: enforced at the application layer
+// (no update/delete method exists), not by DB-level privilege revocation —
+// that's tracked as deferred hardening (see ROADMAP.md), since it needs a
+// dedicated restricted DB role we don't have yet (single role for now).
+model AuditEntry {
+  id             String   @id @default(uuid())
+  correlationId  String
+  occurredAt     DateTime
+  eventType      String
+  schemaVersion  Int
+  subjectType    String
+  subjectId      String
+  actorType      String
+  actorId        String
+  severity       String
+  payload        Json
+  createdAt      DateTime @default(now())
+
+  @@index([correlationId])
+  @@index([subjectId])
+  @@index([eventType])
+  @@index([occurredAt])
+  @@map("audit_logs_entries")
+}

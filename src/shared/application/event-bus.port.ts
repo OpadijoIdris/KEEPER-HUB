@@ -17,4 +17,6 @@ export interface EventBusPort {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   publish(event: DomainEvent<any>): Promise<void>;
   subscribe(eventType: string, handler: DomainEventHandler): void;
+  /** Audit Logs' only subscription — every event, without a per-type registration. */
+  subscribeToAll(handler: DomainEventHandler): void;
 }

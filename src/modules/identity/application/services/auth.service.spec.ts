@@ -88,6 +88,7 @@ class FakeEventBus implements EventBusPort {
   }
 
   subscribe(): void {}
+  subscribeToAll(): void {}
 }
 
 function buildService() {

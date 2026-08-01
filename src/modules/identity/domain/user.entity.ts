@@ -25,9 +25,10 @@ export class User extends AggregateRoot<string> {
   static register(email: Email, passwordHash: PasswordHash): User {
     const user = new User(randomUUID(), email, passwordHash, 'user', new Date());
     user.addDomainEvent(
-      new UserRegisteredEvent(CorrelationContext.get(), {
-        userId: user.id,
-        email: user.email.value,
+      new UserRegisteredEvent({
+        correlationId: CorrelationContext.get(),
+        payload: { userId: user.id, email: user.email.value },
+        subject: { type: 'User', id: user.id },
       }),
     );
     return user;

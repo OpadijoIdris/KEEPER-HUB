@@ -7,11 +7,14 @@ import { DomainEventHandler, EVENT_BUS_PORT, EventBusPort } from './event-bus.po
  * throws never propagates back to the publisher — KeeperHub Integration
  * completing an execution must never fail because Analytics' projection
  * threw. Failed deliveries are logged and counted as dead letters instead of
- * silently dropped; a persistent dead-letter store is a Phase-2 addition
- * once Audit Logs exists to hold it.
+ * silently dropped; a *persistent* dead-letter store (vs. this in-memory
+ * array) is still a future item, deliberately kept separate from Audit
+ * Logs — "a subscriber failed to process an event" is a bus-level
+ * operational concern, not the same thing as "this event happened".
  */
-class InProcessEventBus implements EventBusPort {
+export class InProcessEventBus implements EventBusPort {
   private readonly handlers = new Map<string, DomainEventHandler[]>();
+  private readonly wildcardHandlers: DomainEventHandler[] = [];
   private readonly deadLetters: Array<{
     event: DomainEvent<Record<string, unknown>>;
     error: unknown;
@@ -23,8 +26,12 @@ class InProcessEventBus implements EventBusPort {
     this.handlers.set(eventType, existing);
   }
 
+  subscribeToAll(handler: DomainEventHandler): void {
+    this.wildcardHandlers.push(handler);
+  }
+
   async publish(event: DomainEvent<Record<string, unknown>>): Promise<void> {
-    const handlers = this.handlers.get(event.eventType) ?? [];
+    const handlers = [...(this.handlers.get(event.eventType) ?? []), ...this.wildcardHandlers];
     await Promise.all(
       handlers.map(async (handler) => {
         try {
