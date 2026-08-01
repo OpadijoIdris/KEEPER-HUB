@@ -1,0 +1,45 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: keeperhub_platform
+    # Mapped to 5433, not 5432 — avoids clashing with a local Postgres
+    # install (this project's dev setup normally uses one directly, see
+    # ROADMAP.md Phase 1). The backend container reaches this over the
+    # internal docker network as `postgres:5432` regardless.
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      LOG_LEVEL: info
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/keeperhub_platform?schema=public
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_ACCESS_TTL: ${JWT_ACCESS_TTL:-15m}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_REFRESH_TTL: ${JWT_REFRESH_TTL:-7d}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+      KEEPERHUB_MCP_BASE_URL: ${KEEPERHUB_MCP_BASE_URL:-}
+      KEEPERHUB_API_KEY: ${KEEPERHUB_API_KEY:-}
+      KEEPERHUB_WALLET_ADDRESS: ${KEEPERHUB_WALLET_ADDRESS:-}
+      KEEPERHUB_WALLET_INTEGRATION_ID: ${KEEPERHUB_WALLET_INTEGRATION_ID:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

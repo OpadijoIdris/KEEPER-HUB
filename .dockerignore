@@ -1,0 +1,11 @@
+node_modules
+dist
+coverage
+src/generated
+*.tsbuildinfo
+.env
+.env.local
+.git
+web
+docs
+*.md
