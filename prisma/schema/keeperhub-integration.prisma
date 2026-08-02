@@ -1,0 +1,19 @@
+// KeeperHub Integration module (docs/ARCHITECTURE.md §4.5, revised per ROADMAP.md "KeeperHub
+// live API reconnaissance" — direct execution primitives, not workflow graphs). Owned
+// exclusively by src/modules/keeperhub-integration.
+
+model Execution {
+  id                   String    @id @default(uuid())
+  agentId              String
+  kind                 String
+  params               Json
+  status               String
+  keeperHubExecutionId String?
+  transactionHash      String?
+  failureReason        String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@index([agentId])
+  @@map("keeperhub_executions")
+}

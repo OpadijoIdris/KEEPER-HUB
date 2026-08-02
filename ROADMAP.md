@@ -180,8 +180,19 @@ the modules that consume events from execution (notifications, analytics).
       decision (always-authorize for now, spend-limit enforcement wired in Day 3 alongside
       AgentPolicy). `GET /agents/:agentId/wallet` (idempotent link-or-return) and
       `/wallet/authorizations`. Verified end-to-end against the containerized backend.
-- [ ] 2.5 **KeeperHub Integration** — MCP client adapter: workflow create/execute, poll status,
-      action schema discovery. Highest-risk item (real external API, need credentials) — see Day 2
+- [x] 2.5 **KeeperHub Integration** ✅ (2026-08-02) — revised per reconnaissance: direct execution
+      primitives (`execute_transfer`, `execute_protocol_action`), not workflow graphs. MCP client
+      adapter owns the session handshake (`initialize` → `notifications/initialized`, cached
+      session id, re-initializes once on session-expiry error) and JSON-RPC `tools/call`.
+      `Execution` aggregate: `id` doubles as the idempotency key passed to KeeperHub. Calls
+      `WalletService.authorizePayment` before every execution (Customer/Supplier relationship).
+      On-demand status refresh (`POST /executions/:id/refresh`), not a background poller — see
+      the module's design note for why. **Verified against the real API**: session handshake +
+      `search_protocol_actions` (real Chronicle oracle action list came back), 404 on unknown
+      execution, empty list for a fresh agent, 401 unauthenticated. **Deliberately not verified**:
+      the actual `execute_transfer`/`execute_protocol_action` write path — that moves real funds,
+      and the user chose to hold that off for Day 4's full demo run rather than exercise it
+      incidentally during module verification.
 - [ ] 2.6 **AI** — LangChain agent runner: Agent + Decision entities, rule evaluation, ties
       Wallet + KeeperHub Integration together. `AgentPolicy` (2.1b) added here.
 - [ ] ~~2.7 Notifications~~ — cut (5-day reframe, see "Known deferred hardening")
@@ -209,7 +220,11 @@ the modules that consume events from execution (notifications, analytics).
       so this is lookup-by-id rather than a "your agents" list for now) showing the linked
       KeeperHub wallet address + integration id, and a payment-authorization history table.
       Build + lint clean; no per-screen Playwright run per the reduced verification bar.
-- [ ] F6 **Workflow/execution views** (matches 2.5)
+- [x] F6 **Execution views** ✅ (2026-08-02) — agent execution history table with status refresh,
+      protocol-action browser, and a transfer-submission form gated behind an explicit "I
+      understand this moves real funds" checkbox. Build + lint clean; not click-tested live today
+      (same real-funds reasoning as the backend verification note above) — first live use is the
+      Day 4 demo run.
 - [ ] F7 **Agent list/detail + policy config + decision log** (matches 2.6, includes 2.1b AgentPolicy UI)
 - [ ] ~~F8 Notifications~~ / ~~F9 Analytics~~ — cut with their backend modules (5-day reframe)
 
@@ -388,3 +403,12 @@ slack left). Revised lighter per the reconnaissance above.
   the repo owner) — user provided a one-time PAT, used inline on the push command only (never
   written to git config or any file), user to revoke it now that the push succeeded. Next up:
   Day 2, KeeperHub Integration module.
+- 2026-08-02: Day 2 complete — KeeperHub Integration module + F6. Same push-permission error
+  recurred (Credential Manager still not fixed on the user's end) — used another one-time PAT the
+  same way. Also: our Postgres container had exited (unrelated container from another project,
+  `branda-core-api-postgres-1`, is squatting on host port 5432 — worth the user's awareness, not
+  a conflict with our setup since we're on 5433, but explains earlier confusion about "which
+  Postgres is running"). Verified the MCP session handshake and `search_protocol_actions` against
+  the real API; held off on `execute_transfer`/`execute_protocol_action` since those move real
+  funds — user chose to defer the first real execution to Day 4's deliberate demo run rather than
+  trigger one incidentally during module verification. Next up: Day 3, AI module.

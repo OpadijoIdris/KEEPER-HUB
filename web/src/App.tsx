@@ -8,6 +8,7 @@ import { RegisterPage } from './pages/RegisterPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { AuditLogPage } from './pages/AuditLogPage';
 import { WalletPage } from './pages/WalletPage';
+import { ExecutionsPage } from './pages/ExecutionsPage';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/wallet" element={<WalletPage />} />
+            <Route path="/executions" element={<ExecutionsPage />} />
             <Route element={<AdminRoute />}>
               <Route path="/audit-log" element={<AuditLogPage />} />
             </Route>
