@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { apiFetch, ApiError } from '../lib/api-client';
 
 interface Execution {
@@ -27,14 +28,16 @@ const statusClass: Record<string, string> = {
 };
 
 /**
- * Agents don't exist yet (Day 3) — lookup-by-id, same pattern as
- * WalletPage. Executes real on-chain transactions via KeeperHub, so this
- * screen deliberately was NOT click-tested with a live submission during
- * Day 2 build/verification (see ROADMAP.md) — the first real execution is
- * a deliberate Day 4 demo run, not an incidental one during frontend work.
+ * Lookup-by-id, same pattern as WalletPage — AgentDetailPage (F7) links
+ * here with ?agentId= prefilled. Executes real on-chain transactions via
+ * KeeperHub, so this screen deliberately was NOT click-tested with a live
+ * submission during Day 2 build/verification (see ROADMAP.md) — the first
+ * real execution is a deliberate Day 4 demo run, not an incidental one
+ * during frontend work.
  */
 export function ExecutionsPage() {
-  const [agentId, setAgentId] = useState('demo-agent-1');
+  const [searchParams] = useSearchParams();
+  const [agentId, setAgentId] = useState(searchParams.get('agentId') ?? 'demo-agent-1');
   const [executions, setExecutions] = useState<Execution[]>([]);
   const [actions, setActions] = useState<ProtocolAction[]>([]);
   const [protocolQuery, setProtocolQuery] = useState('chronicle');
@@ -48,12 +51,11 @@ export function ExecutionsPage() {
   const [confirmed, setConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  async function loadExecutions(event: FormEvent) {
-    event.preventDefault();
+  async function loadExecutionsForId(id: string) {
     setError(null);
     setLoading(true);
     try {
-      const result = await apiFetch<Execution[]>(`/agents/${agentId}/executions`);
+      const result = await apiFetch<Execution[]>(`/agents/${id}/executions`);
       setExecutions(result);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to load executions.');
@@ -61,6 +63,16 @@ export function ExecutionsPage() {
       setLoading(false);
     }
   }
+
+  function loadExecutions(event: FormEvent) {
+    event.preventDefault();
+    loadExecutionsForId(agentId);
+  }
+
+  useEffect(() => {
+    if (searchParams.get('agentId')) loadExecutionsForId(agentId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function searchActions(event: FormEvent) {
     event.preventDefault();

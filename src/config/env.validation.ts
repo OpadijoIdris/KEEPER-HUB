@@ -17,4 +17,9 @@ export const envValidationSchema = Joi.object({
   // reconnaissance") — not something we provision ourselves, just a reference.
   KEEPERHUB_WALLET_ADDRESS: Joi.string().allow('').optional(),
   KEEPERHUB_WALLET_INTEGRATION_ID: Joi.string().allow('').optional(),
+
+  // Optional until the AI module is built (Phase 2, Day 3).
+  OXLO_BASE_URL: Joi.string().uri().optional(),
+  OXLO_API_KEY: Joi.string().allow('').optional(),
+  OXLO_MODEL: Joi.string().optional(),
 });

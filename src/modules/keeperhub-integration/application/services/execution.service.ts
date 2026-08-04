@@ -26,7 +26,12 @@ export class ExecutionService {
   ): Promise<Execution> {
     // Wallet is the supplier here (docs/ARCHITECTURE.md context map) — an
     // execution that can't be paid for never reaches KeeperHub at all.
-    await this.walletService.authorizePayment(agentId, amount, tokenAddress ?? 'native');
+    const authorization = await this.walletService.authorizePayment(
+      agentId,
+      'transfer',
+      amount,
+      tokenAddress ?? 'native',
+    );
 
     const execution = Execution.create(agentId, 'transfer', {
       chainId,
@@ -34,6 +39,14 @@ export class ExecutionService {
       amount,
       tokenAddress,
     });
+
+    if (authorization.status === 'rejected') {
+      execution.markFailed(authorization.reason ?? 'Payment authorization rejected.');
+      await this.executions.save(execution);
+      await this.publishEvents(execution);
+      return execution;
+    }
+
     await this.executions.save(execution);
 
     try {
@@ -59,9 +72,22 @@ export class ExecutionService {
     actionType: string,
     params: Record<string, unknown>,
   ): Promise<Execution> {
-    await this.walletService.authorizePayment(agentId, '0', 'n/a');
+    const authorization = await this.walletService.authorizePayment(
+      agentId,
+      'protocol_action',
+      '0',
+      'n/a',
+    );
 
     const execution = Execution.create(agentId, 'protocol_action', { actionType, params });
+
+    if (authorization.status === 'rejected') {
+      execution.markFailed(authorization.reason ?? 'Payment authorization rejected.');
+      await this.executions.save(execution);
+      await this.publishEvents(execution);
+      return execution;
+    }
+
     await this.executions.save(execution);
 
     try {

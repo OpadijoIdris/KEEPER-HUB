@@ -19,6 +19,9 @@ export function Layout() {
               <NavLink to="/settings" className={navLinkClass}>
                 Settings
               </NavLink>
+              <NavLink to="/agents" className={navLinkClass}>
+                Agents
+              </NavLink>
               <NavLink to="/wallet" className={navLinkClass}>
                 Wallet
               </NavLink>

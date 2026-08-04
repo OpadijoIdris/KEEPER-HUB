@@ -9,16 +9,17 @@ export type PaymentAuthorizationStatus = 'authorized' | 'rejected';
 /**
  * Audit record of an authorization decision, not a payment execution
  * itself (KeeperHub Integration executes; this module only decides
- * "is this agent allowed to spend this"). Spend-limit enforcement against
- * AgentPolicy is a TODO wired in once that exists (Day 3, ROADMAP.md
- * Phase 2.1b) — every request is authorized unconditionally until then,
- * which is why this is flagged here rather than silently assumed correct.
+ * "is this agent allowed to spend this"). Spend-limit/allowed-action
+ * enforcement against AgentPolicy is wired in (Day 3, ROADMAP.md Phase
+ * 2.1b) — the application layer (WalletService) loads the policy and
+ * decides authorize vs reject before constructing this record.
  */
 export class PaymentAuthorization extends AggregateRoot<string> {
   private constructor(
     id: string,
     readonly agentWalletId: string,
     readonly agentId: string,
+    readonly kind: string,
     readonly amount: string,
     readonly asset: string,
     readonly status: PaymentAuthorizationStatus,
@@ -31,6 +32,7 @@ export class PaymentAuthorization extends AggregateRoot<string> {
   static authorize(
     agentWalletId: string,
     agentId: string,
+    kind: string,
     amount: string,
     asset: string,
   ): PaymentAuthorization {
@@ -38,6 +40,7 @@ export class PaymentAuthorization extends AggregateRoot<string> {
       randomUUID(),
       agentWalletId,
       agentId,
+      kind,
       amount,
       asset,
       'authorized',
@@ -57,6 +60,7 @@ export class PaymentAuthorization extends AggregateRoot<string> {
   static reject(
     agentWalletId: string,
     agentId: string,
+    kind: string,
     amount: string,
     asset: string,
     reason: string,
@@ -65,6 +69,7 @@ export class PaymentAuthorization extends AggregateRoot<string> {
       randomUUID(),
       agentWalletId,
       agentId,
+      kind,
       amount,
       asset,
       'rejected',
@@ -86,6 +91,7 @@ export class PaymentAuthorization extends AggregateRoot<string> {
     id: string,
     agentWalletId: string,
     agentId: string,
+    kind: string,
     amount: string,
     asset: string,
     status: PaymentAuthorizationStatus,
@@ -96,6 +102,7 @@ export class PaymentAuthorization extends AggregateRoot<string> {
       id,
       agentWalletId,
       agentId,
+      kind,
       amount,
       asset,
       status,

@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { apiFetch, ApiError } from '../lib/api-client';
 
 interface AgentWallet {
@@ -18,26 +19,25 @@ interface PaymentAuthorization {
 }
 
 /**
- * Agents don't exist yet (Day 3, ROADMAP.md) — this is a lookup-by-id page
- * for now rather than a list tied to "your agents", matching what the
- * backend actually supports today. Becomes an agent-scoped view once F7
- * (Agent list/detail) lands.
+ * Still a lookup-by-id page rather than a nav item scoped to one agent —
+ * there's no per-agent wallet sub-route. AgentDetailPage (F7) links here
+ * with ?agentId= prefilled instead.
  */
 export function WalletPage() {
-  const [agentId, setAgentId] = useState('demo-agent-1');
+  const [searchParams] = useSearchParams();
+  const [agentId, setAgentId] = useState(searchParams.get('agentId') ?? 'demo-agent-1');
   const [wallet, setWallet] = useState<AgentWallet | null>(null);
   const [authorizations, setAuthorizations] = useState<PaymentAuthorization[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function lookup(event: FormEvent) {
-    event.preventDefault();
+  async function lookupId(id: string) {
     setError(null);
     setLoading(true);
     try {
       const [walletResult, authResult] = await Promise.all([
-        apiFetch<AgentWallet>(`/agents/${agentId}/wallet`),
-        apiFetch<PaymentAuthorization[]>(`/agents/${agentId}/wallet/authorizations`),
+        apiFetch<AgentWallet>(`/agents/${id}/wallet`),
+        apiFetch<PaymentAuthorization[]>(`/agents/${id}/wallet/authorizations`),
       ]);
       setWallet(walletResult);
       setAuthorizations(authResult);
@@ -48,6 +48,16 @@ export function WalletPage() {
       setLoading(false);
     }
   }
+
+  function lookup(event: FormEvent) {
+    event.preventDefault();
+    lookupId(agentId);
+  }
+
+  useEffect(() => {
+    if (searchParams.get('agentId')) lookupId(agentId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="flex flex-col gap-6">

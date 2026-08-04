@@ -16,6 +16,7 @@ model PaymentAuthorization {
   id            String   @id @default(uuid())
   agentWalletId String
   agentId       String
+  kind          String   @default("unknown")
   amount        String
   asset         String
   status        String

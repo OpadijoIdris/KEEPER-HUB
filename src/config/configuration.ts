@@ -15,6 +15,11 @@ export interface AppConfig {
     walletAddress?: string;
     walletIntegrationId?: string;
   };
+  ai: {
+    oxloBaseUrl?: string;
+    oxloApiKey?: string;
+    oxloModel: string;
+  };
 }
 
 export default (): AppConfig => ({
@@ -33,5 +38,10 @@ export default (): AppConfig => ({
     apiKey: process.env.KEEPERHUB_API_KEY,
     walletAddress: process.env.KEEPERHUB_WALLET_ADDRESS,
     walletIntegrationId: process.env.KEEPERHUB_WALLET_INTEGRATION_ID,
+  },
+  ai: {
+    oxloBaseUrl: process.env.OXLO_BASE_URL,
+    oxloApiKey: process.env.OXLO_API_KEY,
+    oxloModel: process.env.OXLO_MODEL ?? 'deepseek-r1-8b',
   },
 });

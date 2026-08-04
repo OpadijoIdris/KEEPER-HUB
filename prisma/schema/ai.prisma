@@ -1,0 +1,27 @@
+// AI module (docs/ARCHITECTURE.md §4.6). Owned exclusively by src/modules/ai.
+
+model Agent {
+  id               String   @id @default(uuid())
+  ownerId          String
+  name             String
+  monitoredTrigger String
+  rules            String
+  status           String   @default("draft")
+  createdAt        DateTime @default(now())
+
+  @@index([ownerId])
+  @@map("ai_agents")
+}
+
+model Decision {
+  id                   String   @id @default(uuid())
+  agentId              String
+  triggerContext       Json
+  outcome              String
+  rationale            String
+  resultingExecutionId String?
+  evaluatedAt          DateTime @default(now())
+
+  @@index([agentId])
+  @@map("ai_decisions")
+}

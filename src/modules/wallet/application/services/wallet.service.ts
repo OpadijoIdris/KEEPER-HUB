@@ -9,6 +9,7 @@ import type { PaymentAuthorizationRepository } from '../../domain/ports/payment-
 import { EVENT_BUS_PORT } from '../../../../shared/application/event-bus.port';
 import type { EventBusPort } from '../../../../shared/application/event-bus.port';
 import type { AppConfig } from '../../../../config/configuration';
+import { AgentPolicyService } from '../../../settings';
 
 @Injectable()
 export class WalletService {
@@ -18,6 +19,7 @@ export class WalletService {
     private readonly authorizations: PaymentAuthorizationRepository,
     @Inject(EVENT_BUS_PORT) private readonly eventBus: EventBusPort,
     private readonly configService: ConfigService<AppConfig, true>,
+    private readonly agentPolicyService: AgentPolicyService,
   ) {}
 
   /** Idempotent — returns the existing link for this agent, or creates one against the org's configured KeeperHub wallet. */
@@ -39,16 +41,33 @@ export class WalletService {
   }
 
   /**
-   * Always authorizes for now — see PaymentAuthorization's class doc.
-   * Spend-limit enforcement against AgentPolicy wires in on Day 3.
+   * Checked against AgentPolicy (Settings' Public API — Wallet is the
+   * consumer here, see docs/ARCHITECTURE.md §7.3, §9.2). Returns a
+   * "rejected" PaymentAuthorization rather than throwing — an agent
+   * exceeding its policy is an expected business outcome, not an
+   * exceptional error, and the rejection itself is exactly the kind of
+   * thing that belongs in the audit trail.
    */
   async authorizePayment(
     agentId: string,
+    kind: string,
     amount: string,
     asset: string,
   ): Promise<PaymentAuthorization> {
     const wallet = await this.getOrLinkWallet(agentId);
-    const authorization = PaymentAuthorization.authorize(wallet.id, agentId, amount, asset);
+    const permitted = await this.agentPolicyService.permits(agentId, kind, amount);
+
+    const authorization = permitted
+      ? PaymentAuthorization.authorize(wallet.id, agentId, kind, amount, asset)
+      : PaymentAuthorization.reject(
+          wallet.id,
+          agentId,
+          kind,
+          amount,
+          asset,
+          `Agent policy does not permit "${kind}" of amount ${amount}.`,
+        );
+
     await this.authorizations.save(authorization);
     await this.publishEvents(authorization);
     return authorization;

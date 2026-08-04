@@ -9,6 +9,8 @@ import { SettingsPage } from './pages/SettingsPage';
 import { AuditLogPage } from './pages/AuditLogPage';
 import { WalletPage } from './pages/WalletPage';
 import { ExecutionsPage } from './pages/ExecutionsPage';
+import { AgentsPage } from './pages/AgentsPage';
+import { AgentDetailPage } from './pages/AgentDetailPage';
 
 function App() {
   return (
@@ -19,6 +21,8 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/agents" element={<AgentsPage />} />
+            <Route path="/agents/:agentId" element={<AgentDetailPage />} />
             <Route path="/wallet" element={<WalletPage />} />
             <Route path="/executions" element={<ExecutionsPage />} />
             <Route element={<AdminRoute />}>

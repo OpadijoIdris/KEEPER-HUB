@@ -20,3 +20,13 @@ model PlatformSettings {
 
   @@map("settings_platform_settings")
 }
+
+model AgentPolicy {
+  id             String   @id @default(uuid())
+  agentId        String   @unique
+  spendLimit     String   @default("0")
+  allowedActions Json     @default("[]")
+  updatedAt      DateTime @updatedAt
+
+  @@map("settings_agent_policies")
+}
