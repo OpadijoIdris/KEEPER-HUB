@@ -18,6 +18,12 @@ export interface KeeperHubExecutionHandle {
   keeperHubExecutionId: string;
 }
 
+export interface TransferSimulationResult {
+  success: boolean;
+  wouldRevert: boolean;
+  error?: string;
+}
+
 export interface KeeperHubExecutionStatus {
   status: 'pending' | 'submitted' | 'confirmed' | 'failed';
   transactionHash?: string;
@@ -37,6 +43,8 @@ export interface ProtocolAction {
  * KeeperHub's MCP JSON-RPC protocol.
  */
 export interface KeeperHubClient {
+  /** EVM-only preflight (see ROADMAP.md "KeeperHub live API reconnaissance") — call before every executeTransfer. */
+  simulateTransfer(params: ExecuteTransferParams): Promise<TransferSimulationResult>;
   executeTransfer(params: ExecuteTransferParams): Promise<KeeperHubExecutionHandle>;
   executeProtocolAction(params: ExecuteProtocolActionParams): Promise<KeeperHubExecutionHandle>;
   getExecutionStatus(keeperHubExecutionId: string): Promise<KeeperHubExecutionStatus>;

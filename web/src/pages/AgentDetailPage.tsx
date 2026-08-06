@@ -211,7 +211,7 @@ export function AgentDetailPage() {
         {policy && (
           <form onSubmit={savePolicy} className="flex flex-col gap-2">
             <label className="text-xs text-slate-500">
-              Spend limit (per action)
+              Spend limit (cumulative total)
               <input
                 value={spendLimit}
                 onChange={(e) => setSpendLimit(e.target.value)}

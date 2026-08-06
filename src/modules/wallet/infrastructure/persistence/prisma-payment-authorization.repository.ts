@@ -35,6 +35,16 @@ export class PrismaPaymentAuthorizationRepository implements PaymentAuthorizatio
     return records.map((record) => this.toDomain(record));
   }
 
+  async sumAuthorizedAmount(agentId: string): Promise<number> {
+    // amount is stored as a decimal string (see prisma/schema/wallet.prisma), so this can't be
+    // a native SQL SUM — summed in JS, consistent with how AgentPolicy compares amounts elsewhere.
+    const records = await this.prisma.paymentAuthorization.findMany({
+      where: { agentId, status: 'authorized' },
+      select: { amount: true },
+    });
+    return records.reduce((total, record) => total + Number(record.amount), 0);
+  }
+
   private toDomain(record: PaymentAuthorizationModel): PaymentAuthorization {
     return PaymentAuthorization.fromPersistence(
       record.id,

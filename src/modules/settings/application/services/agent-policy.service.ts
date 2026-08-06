@@ -21,8 +21,13 @@ export class AgentPolicyService {
   }
 
   /** Wallet's Public API consumer — see docs/ARCHITECTURE.md §7.3, §9.2. */
-  async permits(agentId: string, kind: string, amount: string): Promise<boolean> {
+  async permits(
+    agentId: string,
+    kind: string,
+    amount: string,
+    cumulativeSpendSoFar: number,
+  ): Promise<boolean> {
     const policy = await this.get(agentId);
-    return policy.permits(kind, amount);
+    return policy.permits(kind, amount, cumulativeSpendSoFar);
   }
 }

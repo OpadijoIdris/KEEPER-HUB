@@ -33,10 +33,15 @@ export class OxloAgentReasoningAdapter implements AgentReasoning {
       'action should run), "skip" (rules not currently satisfied, do nothing), or "blocked" (the',
       'right action isn\'t in the allowed list, or the context is insufficient/unsafe to act on).',
       '',
-      'Respond with ONLY a JSON object, no markdown fences, no other text:',
-      '{"outcome": "execute" | "skip" | "blocked", "rationale": "<one or two sentences explaining why>",',
-      ' "action": {"kind": "transfer" | "protocol_action", "params": {...}} }',
-      'Omit "action" entirely unless outcome is "execute".',
+      'Respond with ONLY a JSON object, no markdown fences, no other text. Omit "action" entirely',
+      'unless outcome is "execute". When outcome is "execute", "action.params" MUST use exactly',
+      'these keys (no others, no nesting) depending on "action.kind":',
+      '- kind "transfer": {"chainId": "<chain id as a string, e.g. \\"1\\">", "toAddress": "<0x... recipient>",',
+      '  "amount": "<decimal string, e.g. \\"0.0005\\">", "tokenAddress": "<0x... ERC20 contract, OMIT for native token>"}',
+      '- kind "protocol_action": {"actionType": "<protocol/action-slug>", "params": {<action-specific key-values>}}',
+      '',
+      'Example: {"outcome": "execute", "rationale": "...",',
+      ' "action": {"kind": "transfer", "params": {"chainId": "1", "toAddress": "0xabc...", "amount": "0.0005"}}}',
     ].join('\n');
 
     const response = await model.invoke([

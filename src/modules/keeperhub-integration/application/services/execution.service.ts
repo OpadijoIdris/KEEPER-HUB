@@ -50,14 +50,28 @@ export class ExecutionService {
     await this.executions.save(execution);
 
     try {
-      const handle = await this.keeperHub.executeTransfer({
+      // KeeperHub's documented safety flow (ROADMAP.md "KeeperHub live API
+      // reconnaissance"): preflight with simulate=true, only broadcast for
+      // real once it comes back clean.
+      const simulation = await this.keeperHub.simulateTransfer({
         chainId,
         toAddress,
         amount,
         tokenAddress,
         idempotencyKey: execution.id,
       });
-      execution.markSubmitted(handle.keeperHubExecutionId);
+      if (!simulation.success || simulation.wouldRevert) {
+        execution.markFailed(simulation.error ?? 'Transfer simulation indicated it would revert.');
+      } else {
+        const handle = await this.keeperHub.executeTransfer({
+          chainId,
+          toAddress,
+          amount,
+          tokenAddress,
+          idempotencyKey: execution.id,
+        });
+        execution.markSubmitted(handle.keeperHubExecutionId);
+      }
     } catch (error) {
       execution.markFailed(error instanceof Error ? error.message : String(error));
     }

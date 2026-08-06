@@ -8,6 +8,7 @@ import type {
   KeeperHubExecutionHandle,
   KeeperHubExecutionStatus,
   ProtocolAction,
+  TransferSimulationResult,
 } from '../../domain/ports/keeperhub-client.port';
 import type { AppConfig } from '../../../../config/configuration';
 
@@ -30,6 +31,21 @@ export class KeeperHubMcpClientAdapter implements KeeperHubClient {
   private initializing: Promise<string> | null = null;
 
   constructor(private readonly configService: ConfigService<AppConfig, true>) {}
+
+  async simulateTransfer(params: ExecuteTransferParams): Promise<TransferSimulationResult> {
+    const result = await this.callTool('execute_transfer', {
+      chain_id: params.chainId,
+      to_address: params.toAddress,
+      amount: params.amount,
+      token_address: params.tokenAddress,
+      simulate: true,
+    });
+    return {
+      success: Boolean(result.success),
+      wouldRevert: Boolean(result.wouldRevert),
+      error: result.error,
+    };
+  }
 
   async executeTransfer(params: ExecuteTransferParams): Promise<KeeperHubExecutionHandle> {
     const result = await this.callTool('execute_transfer', {
@@ -77,7 +93,7 @@ export class KeeperHubMcpClientAdapter implements KeeperHubClient {
 
   private normalizeStatus(status: unknown): KeeperHubExecutionStatus['status'] {
     const s = String(status).toLowerCase();
-    if (s.includes('confirm') || s === 'success' || s === 'succeeded') return 'confirmed';
+    if (s.includes('confirm') || s.includes('complet') || s === 'success' || s === 'succeeded') return 'confirmed';
     if (s.includes('fail') || s === 'reverted' || s === 'error') return 'failed';
     if (s.includes('submit') || s === 'pending_confirmation') return 'submitted';
     return 'pending';

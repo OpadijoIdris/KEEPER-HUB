@@ -46,8 +46,15 @@ export class AgentPolicy extends Entity<string> {
     if (allowedActions !== undefined) this._allowedActions = allowedActions;
   }
 
-  permits(kind: string, amount: string): boolean {
+  /**
+   * cumulativeSpendSoFar is the agent's already-authorized total (summed by
+   * Wallet, the module that owns PaymentAuthorization — Settings is a pure
+   * Open Host Service and doesn't reach into other modules' data itself).
+   * Checked against spendLimit as a running budget, not a per-transaction
+   * cap: a policy of 0.01 permits ten 0.001 transfers, not unlimited ones.
+   */
+  permits(kind: string, amount: string, cumulativeSpendSoFar: number): boolean {
     if (!this._allowedActions.includes(kind)) return false;
-    return Number(amount) <= Number(this._spendLimit);
+    return cumulativeSpendSoFar + Number(amount) <= Number(this._spendLimit);
   }
 }
