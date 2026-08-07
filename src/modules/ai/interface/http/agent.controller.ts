@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { CurrentUser, JwtAuthGuard } from '../../../identity';
 import type { AccessTokenClaims } from '../../../identity';
 import { AgentService } from '../../application/services/agent.service';
+import { AgentOwnerGuard } from '../guards/agent-owner.guard';
 import { CreateAgentDto } from '../dto/create-agent.dto';
 import { AgentResponseDto, toAgentResponse } from '../mappers/ai.mapper';
 
@@ -26,24 +27,28 @@ export class AgentController {
   }
 
   @Get(':agentId')
+  @UseGuards(AgentOwnerGuard())
   async get(@Param('agentId') agentId: string): Promise<AgentResponseDto | null> {
     const agent = await this.agentService.getAgent(agentId);
     return agent ? toAgentResponse(agent) : null;
   }
 
   @Post(':agentId/activate')
+  @UseGuards(AgentOwnerGuard())
   async activate(@Param('agentId') agentId: string): Promise<AgentResponseDto> {
     const agent = await this.agentService.activate(agentId);
     return toAgentResponse(agent);
   }
 
   @Post(':agentId/pause')
+  @UseGuards(AgentOwnerGuard())
   async pause(@Param('agentId') agentId: string): Promise<AgentResponseDto> {
     const agent = await this.agentService.pause(agentId);
     return toAgentResponse(agent);
   }
 
   @Post(':agentId/retire')
+  @UseGuards(AgentOwnerGuard())
   async retire(@Param('agentId') agentId: string): Promise<AgentResponseDto> {
     const agent = await this.agentService.retire(agentId);
     return toAgentResponse(agent);

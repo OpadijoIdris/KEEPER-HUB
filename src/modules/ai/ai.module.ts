@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { SettingsModule } from '../settings';
 import { KeeperHubIntegrationModule } from '../keeperhub-integration';
 import { AgentService } from './application/services/agent.service';
@@ -18,7 +18,16 @@ import { AGENT_REASONING } from './domain/ports/agent-reasoning.port';
  * KeeperHubIntegrationModule (an "execute" decision becomes a real
  * Execution) — the module where "AI decides, KeeperHub executes" actually
  * happens.
+ *
+ * @Global so AgentService (and the ownership guards built on it, see
+ * AgentOwnerGuard) is injectable from Wallet/Settings/KeeperHub Integration
+ * without those modules formally importing AiModule — which would be
+ * circular, since AiModule already imports KeeperHubIntegrationModule
+ * (-> WalletModule -> SettingsModule). Every other module still only
+ * *depends on* AI's Public API by reference (AgentService, AgentOwnerGuard),
+ * never the reverse.
  */
+@Global()
 @Module({
   imports: [SettingsModule, KeeperHubIntegrationModule],
   controllers: [AgentController, DecisionController],

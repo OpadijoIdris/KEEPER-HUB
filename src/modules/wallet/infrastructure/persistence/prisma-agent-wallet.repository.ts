@@ -23,7 +23,11 @@ export class PrismaAgentWalletRepository implements AgentWalletRepository {
         keeperHubIntegrationId: wallet.keeperHubIntegrationId,
         linkedAt: wallet.linkedAt,
       },
-      update: {},
+      update: {
+        address: wallet.address,
+        keeperHubIntegrationId: wallet.keeperHubIntegrationId,
+        linkedAt: wallet.linkedAt,
+      },
     });
   }
 

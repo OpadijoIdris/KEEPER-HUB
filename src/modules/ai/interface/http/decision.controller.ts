@@ -1,11 +1,12 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../identity';
 import { DecisionService } from '../../application/services/decision.service';
+import { AgentOwnerGuard } from '../guards/agent-owner.guard';
 import { EvaluateAgentDto } from '../dto/evaluate-agent.dto';
 import { DecisionResponseDto, toDecisionResponse } from '../mappers/ai.mapper';
 
 @Controller('agents/:agentId')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, AgentOwnerGuard())
 export class DecisionController {
   constructor(private readonly decisionService: DecisionService) {}
 

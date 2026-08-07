@@ -18,6 +18,7 @@
     "test:cov": "jest --coverage",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "seed:demo": "ts-node scripts/seed-demo.ts",
     "docker:up": "docker compose up -d --build",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f backend"

@@ -37,6 +37,9 @@ services:
       KEEPERHUB_API_KEY: ${KEEPERHUB_API_KEY:-}
       KEEPERHUB_WALLET_ADDRESS: ${KEEPERHUB_WALLET_ADDRESS:-}
       KEEPERHUB_WALLET_INTEGRATION_ID: ${KEEPERHUB_WALLET_INTEGRATION_ID:-}
+      OXLO_BASE_URL: ${OXLO_BASE_URL:-}
+      OXLO_API_KEY: ${OXLO_API_KEY:-}
+      OXLO_MODEL: ${OXLO_MODEL:-deepseek-r1-8b}
     depends_on:
       postgres:
         condition: service_healthy

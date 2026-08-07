@@ -43,31 +43,33 @@ export class DecisionService {
     });
 
     let resultingExecutionId: string | null = null;
+    let rationale = result.rationale;
     if (result.outcome === 'execute' && result.action) {
-      const execution =
-        result.action.kind === 'transfer'
-          ? await this.executionService.executeTransfer(
-              agentId,
-              String(result.action.params.chainId ?? ''),
-              String(result.action.params.toAddress ?? ''),
-              String(result.action.params.amount ?? '0'),
-              result.action.params.tokenAddress ? String(result.action.params.tokenAddress) : undefined,
-            )
-          : await this.executionService.executeProtocolAction(
-              agentId,
-              String(result.action.params.actionType ?? ''),
-              result.action.params,
-            );
-      resultingExecutionId = execution.id;
+      try {
+        const execution =
+          result.action.kind === 'transfer'
+            ? await this.executionService.executeTransfer(
+                agentId,
+                String(result.action.params.chainId ?? ''),
+                String(result.action.params.toAddress ?? ''),
+                String(result.action.params.amount ?? '0'),
+                result.action.params.tokenAddress ? String(result.action.params.tokenAddress) : undefined,
+              )
+            : await this.executionService.executeProtocolAction(
+                agentId,
+                String(result.action.params.actionType ?? ''),
+                result.action.params,
+              );
+        resultingExecutionId = execution.id;
+      } catch (error) {
+        // Same contract as ExecutionService itself (a rejected/failed
+        // execution is a recorded outcome, not an uncaught error) — most
+        // common cause here is no wallet linked yet (see WalletService.getWallet).
+        rationale = `${rationale} (execution attempt failed: ${error instanceof Error ? error.message : String(error)})`;
+      }
     }
 
-    const decision = Decision.record(
-      agentId,
-      triggerContext,
-      result.outcome,
-      result.rationale,
-      resultingExecutionId,
-    );
+    const decision = Decision.record(agentId, triggerContext, result.outcome, rationale, resultingExecutionId);
     await this.decisions.save(decision);
     await this.publishEvents(decision);
     return decision;

@@ -1,5 +1,8 @@
 import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../identity';
+// Direct file import, not the `ai` barrel — see keeperhub-integration's
+// execution-owner.guard.ts for why (CommonJS require() cycle at boot).
+import { AgentOwnerGuard } from '../../../ai/interface/guards/agent-owner.guard';
 import { AgentPolicyService } from '../../application/services/agent-policy.service';
 import { UpdateAgentPolicyDto } from '../dto/update-agent-policy.dto';
 
@@ -9,14 +12,8 @@ interface AgentPolicyResponseDto {
   allowedActions: readonly string[];
 }
 
-/**
- * Ownership scoping deferred — same tracked gap as Wallet/Executions
- * (ROADMAP.md 2.1b originally, now built alongside AI in the same Day 3
- * pass, but kept consistent with the existing pattern rather than adding a
- * one-off exception here).
- */
 @Controller('agents/:agentId/policy')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, AgentOwnerGuard())
 export class AgentPolicyController {
   constructor(private readonly agentPolicyService: AgentPolicyService) {}
 

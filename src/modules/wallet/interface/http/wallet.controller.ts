@@ -1,6 +1,10 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../identity';
+// Direct file import, not the `ai` barrel — see keeperhub-integration's
+// execution-owner.guard.ts for why (CommonJS require() cycle at boot).
+import { AgentOwnerGuard } from '../../../ai/interface/guards/agent-owner.guard';
 import { WalletService } from '../../application/services/wallet.service';
+import { LinkWalletDto } from '../dto/link-wallet.dto';
 import {
   AgentWalletResponseDto,
   PaymentAuthorizationResponseDto,
@@ -8,19 +12,24 @@ import {
   toPaymentAuthorizationResponse,
 } from '../mappers/wallet.mapper';
 
-/**
- * Ownership scoping (only the agent's owner may view its wallet) is
- * deferred alongside AgentPolicy (ROADMAP.md 2.1b) — Agent.ownerId doesn't
- * exist until Day 3. JwtAuthGuard only for now, same tracked gap.
- */
 @Controller('agents/:agentId/wallet')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, AgentOwnerGuard())
 export class WalletController {
   constructor(private readonly walletService: WalletService) {}
 
   @Get()
   async getWallet(@Param('agentId') agentId: string): Promise<AgentWalletResponseDto> {
-    const wallet = await this.walletService.getOrLinkWallet(agentId);
+    const wallet = await this.walletService.getWallet(agentId);
+    return toAgentWalletResponse(wallet);
+  }
+
+  /** Bring-your-own-wallet (README.md "Wallet model") — connect it on KeeperHub's dashboard first, then link it here. */
+  @Patch()
+  async linkWallet(
+    @Param('agentId') agentId: string,
+    @Body() dto: LinkWalletDto,
+  ): Promise<AgentWalletResponseDto> {
+    const wallet = await this.walletService.linkWallet(agentId, dto.address, dto.keeperHubIntegrationId);
     return toAgentWalletResponse(wallet);
   }
 
