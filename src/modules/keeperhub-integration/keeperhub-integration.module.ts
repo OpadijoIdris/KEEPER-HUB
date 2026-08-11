@@ -4,6 +4,7 @@ import { ExecutionService } from './application/services/execution.service';
 import { ExecutionController } from './interface/http/execution.controller';
 import { KeeperHubMcpClientAdapter } from './infrastructure/external/keeperhub-mcp-client.adapter';
 import { PrismaExecutionRepository } from './infrastructure/persistence/prisma-execution.repository';
+import { ExecutionStatusPoller } from './infrastructure/scheduler/execution-status.poller';
 import { EXECUTION_REPOSITORY } from './domain/ports/execution.repository';
 import { KEEPERHUB_CLIENT } from './domain/ports/keeperhub-client.port';
 
@@ -20,6 +21,7 @@ import { KEEPERHUB_CLIENT } from './domain/ports/keeperhub-client.port';
   controllers: [ExecutionController],
   providers: [
     ExecutionService,
+    ExecutionStatusPoller,
     { provide: EXECUTION_REPOSITORY, useClass: PrismaExecutionRepository },
     { provide: KEEPERHUB_CLIENT, useClass: KeeperHubMcpClientAdapter },
   ],

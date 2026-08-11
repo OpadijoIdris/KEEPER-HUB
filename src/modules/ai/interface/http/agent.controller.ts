@@ -16,7 +16,12 @@ export class AgentController {
     @CurrentUser() user: AccessTokenClaims,
     @Body() dto: CreateAgentDto,
   ): Promise<AgentResponseDto> {
-    const agent = await this.agentService.create(user.sub, dto.name, dto.monitoredTrigger, dto.rules);
+    const agent = await this.agentService.create(
+      user.sub,
+      dto.name,
+      dto.monitoredTrigger,
+      dto.rules,
+    );
     return toAgentResponse(agent);
   }
 

@@ -31,7 +31,12 @@ export class Notification extends Entity<string> {
     return this._read;
   }
 
-  static create(userId: string, type: NotificationType, title: string, message: string): Notification {
+  static create(
+    userId: string,
+    type: NotificationType,
+    title: string,
+    message: string,
+  ): Notification {
     return new Notification(randomUUID(), userId, type, title, message, false, new Date());
   }
 

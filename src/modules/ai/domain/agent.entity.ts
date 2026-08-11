@@ -41,7 +41,15 @@ export class Agent extends AggregateRoot<string> {
   }
 
   static create(ownerId: string, name: string, monitoredTrigger: string, rules: string): Agent {
-    const agent = new Agent(randomUUID(), ownerId, name, monitoredTrigger, rules, 'draft', new Date());
+    const agent = new Agent(
+      randomUUID(),
+      ownerId,
+      name,
+      monitoredTrigger,
+      rules,
+      'draft',
+      new Date(),
+    );
     agent.addDomainEvent(
       new AgentCreatedEvent({
         correlationId: CorrelationContext.get(),

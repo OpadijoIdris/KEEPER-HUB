@@ -21,6 +21,14 @@ export class PrismaAgentRepository implements AgentRepository {
     return records.map((record) => this.toDomain(record));
   }
 
+  async findAllActive(): Promise<Agent[]> {
+    const records = await this.prisma.agent.findMany({
+      where: { status: 'active' },
+      orderBy: { createdAt: 'asc' },
+    });
+    return records.map((record) => this.toDomain(record));
+  }
+
   async save(agent: Agent): Promise<void> {
     await this.prisma.agent.upsert({
       where: { id: agent.id },

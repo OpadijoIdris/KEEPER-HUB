@@ -30,4 +30,9 @@ export const envValidationSchema = Joi.object({
   EMAIL_USER: Joi.string().allow('').optional(),
   EMAIL_PASS: Joi.string().allow('').optional(),
   EMAIL_FROM: Joi.string().allow('').optional(),
+
+  // Off by default — AgentEvaluationScheduler can make agents execute real,
+  // funded transactions unattended once enabled. See README.md "Known gaps".
+  AGENT_SCHEDULER_ENABLED: Joi.boolean().default(false),
+  AGENT_EVALUATION_INTERVAL_MS: Joi.number().default(900_000),
 });

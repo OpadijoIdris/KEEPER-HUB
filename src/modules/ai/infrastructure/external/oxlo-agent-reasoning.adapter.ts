@@ -31,7 +31,7 @@ export class OxloAgentReasoningAdapter implements AgentReasoning {
       '',
       'Given the trigger context, decide one of: "execute" (the rules are satisfied and an allowed',
       'action should run), "skip" (rules not currently satisfied, do nothing), or "blocked" (the',
-      'right action isn\'t in the allowed list, or the context is insufficient/unsafe to act on).',
+      "right action isn't in the allowed list, or the context is insufficient/unsafe to act on).",
       '',
       'Respond with ONLY a JSON object, no markdown fences, no other text. Omit "action" entirely',
       'unless outcome is "execute". When outcome is "execute", "action.params" MUST use exactly',
@@ -46,10 +46,14 @@ export class OxloAgentReasoningAdapter implements AgentReasoning {
 
     const response = await model.invoke([
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: `Trigger context:\n${JSON.stringify(request.triggerContext, null, 2)}` },
+      {
+        role: 'user',
+        content: `Trigger context:\n${JSON.stringify(request.triggerContext, null, 2)}`,
+      },
     ]);
 
-    const text = typeof response.content === 'string' ? response.content : JSON.stringify(response.content);
+    const text =
+      typeof response.content === 'string' ? response.content : JSON.stringify(response.content);
     return this.parseResult(text);
   }
 
@@ -58,7 +62,11 @@ export class OxloAgentReasoningAdapter implements AgentReasoning {
     const jsonText = jsonMatch ? jsonMatch[0] : text;
     try {
       const parsed = JSON.parse(jsonText);
-      if (parsed.outcome !== 'execute' && parsed.outcome !== 'skip' && parsed.outcome !== 'blocked') {
+      if (
+        parsed.outcome !== 'execute' &&
+        parsed.outcome !== 'skip' &&
+        parsed.outcome !== 'blocked'
+      ) {
         throw new Error(`Unrecognized outcome: ${parsed.outcome}`);
       }
       return {

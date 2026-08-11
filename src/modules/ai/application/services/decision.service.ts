@@ -53,7 +53,9 @@ export class DecisionService {
                 String(result.action.params.chainId ?? ''),
                 String(result.action.params.toAddress ?? ''),
                 String(result.action.params.amount ?? '0'),
-                result.action.params.tokenAddress ? String(result.action.params.tokenAddress) : undefined,
+                result.action.params.tokenAddress
+                  ? String(result.action.params.tokenAddress)
+                  : undefined,
               )
             : await this.executionService.executeProtocolAction(
                 agentId,
@@ -69,7 +71,13 @@ export class DecisionService {
       }
     }
 
-    const decision = Decision.record(agentId, triggerContext, result.outcome, rationale, resultingExecutionId);
+    const decision = Decision.record(
+      agentId,
+      triggerContext,
+      result.outcome,
+      rationale,
+      resultingExecutionId,
+    );
     await this.decisions.save(decision);
     await this.publishEvents(decision);
     return decision;

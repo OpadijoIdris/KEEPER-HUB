@@ -43,7 +43,12 @@ export class Decision extends AggregateRoot<string> {
     decision.addDomainEvent(
       new DecisionMadeEvent({
         correlationId: CorrelationContext.get(),
-        payload: { agentId, outcome, rationale, resultingExecutionId: resultingExecutionId ?? undefined },
+        payload: {
+          agentId,
+          outcome,
+          rationale,
+          resultingExecutionId: resultingExecutionId ?? undefined,
+        },
         subject: { type: 'Agent', id: agentId },
         actor: { type: 'agent', id: agentId },
       }),
@@ -60,6 +65,14 @@ export class Decision extends AggregateRoot<string> {
     resultingExecutionId: string | null,
     evaluatedAt: Date,
   ): Decision {
-    return new Decision(id, agentId, triggerContext, outcome, rationale, resultingExecutionId, evaluatedAt);
+    return new Decision(
+      id,
+      agentId,
+      triggerContext,
+      outcome,
+      rationale,
+      resultingExecutionId,
+      evaluatedAt,
+    );
   }
 }

@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../identity';
 // Direct file import, not the `ai` barrel — see keeperhub-integration's
 // execution-owner.guard.ts for why (CommonJS require() cycle at boot).
+// eslint-disable-next-line boundaries/element-types -- see comment above
 import { AgentOwnerGuard } from '../../../ai/interface/guards/agent-owner.guard';
 import { WalletService } from '../../application/services/wallet.service';
 import { LinkWalletDto } from '../dto/link-wallet.dto';
@@ -29,7 +30,11 @@ export class WalletController {
     @Param('agentId') agentId: string,
     @Body() dto: LinkWalletDto,
   ): Promise<AgentWalletResponseDto> {
-    const wallet = await this.walletService.linkWallet(agentId, dto.address, dto.keeperHubIntegrationId);
+    const wallet = await this.walletService.linkWallet(
+      agentId,
+      dto.address,
+      dto.keeperHubIntegrationId,
+    );
     return toAgentWalletResponse(wallet);
   }
 

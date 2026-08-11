@@ -13,7 +13,12 @@ export class AgentService {
     @Inject(EVENT_BUS_PORT) private readonly eventBus: EventBusPort,
   ) {}
 
-  async create(ownerId: string, name: string, monitoredTrigger: string, rules: string): Promise<Agent> {
+  async create(
+    ownerId: string,
+    name: string,
+    monitoredTrigger: string,
+    rules: string,
+  ): Promise<Agent> {
     const agent = Agent.create(ownerId, name, monitoredTrigger, rules);
     await this.agents.save(agent);
     await this.publishEvents(agent);

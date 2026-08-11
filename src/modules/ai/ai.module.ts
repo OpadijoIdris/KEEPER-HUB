@@ -8,6 +8,7 @@ import { DecisionController } from './interface/http/decision.controller';
 import { PrismaAgentRepository } from './infrastructure/persistence/prisma-agent.repository';
 import { PrismaDecisionRepository } from './infrastructure/persistence/prisma-decision.repository';
 import { OxloAgentReasoningAdapter } from './infrastructure/external/oxlo-agent-reasoning.adapter';
+import { AgentEvaluationScheduler } from './infrastructure/scheduler/agent-evaluation.scheduler';
 import { AGENT_REPOSITORY } from './domain/ports/agent.repository';
 import { DECISION_REPOSITORY } from './domain/ports/decision.repository';
 import { AGENT_REASONING } from './domain/ports/agent-reasoning.port';
@@ -34,6 +35,7 @@ import { AGENT_REASONING } from './domain/ports/agent-reasoning.port';
   providers: [
     AgentService,
     DecisionService,
+    AgentEvaluationScheduler,
     { provide: AGENT_REPOSITORY, useClass: PrismaAgentRepository },
     { provide: DECISION_REPOSITORY, useClass: PrismaDecisionRepository },
     { provide: AGENT_REASONING, useClass: OxloAgentReasoningAdapter },

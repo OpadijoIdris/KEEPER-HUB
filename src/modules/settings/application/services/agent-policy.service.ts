@@ -13,9 +13,14 @@ export class AgentPolicyService {
     return (await this.repository.findByAgentId(agentId)) ?? AgentPolicy.createDefault(agentId);
   }
 
-  async update(agentId: string, spendLimit?: string, allowedActions?: string[]): Promise<AgentPolicy> {
+  async update(
+    agentId: string,
+    spendLimit?: string,
+    allowedActions?: string[],
+    allowedDestinations?: string[],
+  ): Promise<AgentPolicy> {
     const policy = await this.get(agentId);
-    policy.update(spendLimit, allowedActions);
+    policy.update(spendLimit, allowedActions, allowedDestinations);
     await this.repository.save(policy);
     return policy;
   }
@@ -26,8 +31,9 @@ export class AgentPolicyService {
     kind: string,
     amount: string,
     cumulativeSpendSoFar: number,
+    destinationAddress?: string,
   ): Promise<boolean> {
     const policy = await this.get(agentId);
-    return policy.permits(kind, amount, cumulativeSpendSoFar);
+    return policy.permits(kind, amount, cumulativeSpendSoFar, destinationAddress);
   }
 }

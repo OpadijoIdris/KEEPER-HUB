@@ -139,12 +139,18 @@ every test run.
 
 Documented rather than hidden — see `ROADMAP.md`'s "Known deferred hardening" for the full
 list. Ownership enforcement and per-agent wallets (both listed as blockers for real multi-user
-hosting during a post-hackathon review) are done; three still worth knowing about:
+hosting) are done, and so are the three gaps that used to be listed here:
 
-- **No destination-address restriction.** `AgentPolicy` gates spend amount and action kind, not
-  *where* funds can go. Worth an allowlist before this touches anything beyond a demo wallet.
-- **Execution status is pull-only.** The frontend needs a manual "Refresh" click to move from
-  `submitted` to `confirmed` — no background poller or webhook yet.
-- **No live trigger system.** Agents are evaluated on-demand (`POST /agents/:id/evaluate`), not
-  against a real scheduler or event feed. The `monitoredTrigger`/`rules` fields are descriptive
-  text the LLM reads as context, not a wired-up watcher.
+- **Destination-address allowlisting.** `AgentPolicy` can now restrict *where* a `transfer`'s
+  funds go (`allowedDestinations`, checked case-insensitively). Empty list = unrestricted
+  (fail-open), so existing agents aren't retroactively blocked — opt in per agent via
+  `PATCH /agents/:id/policy`. `protocol_action` executions aren't covered — their `params` is an
+  untyped bag with no fixed address field to check.
+- **Execution status polling.** `ExecutionStatusPoller` reconciles every `submitted` execution
+  against KeeperHub every 30s in the background — no manual "Refresh" click required, though the
+  button still works for an immediate check.
+- **Scheduled agent auto-evaluation.** `AgentEvaluationScheduler` calls the same evaluate path as
+  `POST /agents/:id/evaluate` on a timer for every `active` agent — the closest thing to a live
+  trigger system without a real blockchain event feed or price oracle to build one on top of.
+  **Off by default** (`AGENT_SCHEDULER_ENABLED=false`) since it can spend real funds unattended;
+  enable it and set `AGENT_EVALUATION_INTERVAL_MS` to turn it on.

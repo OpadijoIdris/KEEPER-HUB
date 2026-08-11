@@ -93,7 +93,8 @@ export class KeeperHubMcpClientAdapter implements KeeperHubClient {
 
   private normalizeStatus(status: unknown): KeeperHubExecutionStatus['status'] {
     const s = String(status).toLowerCase();
-    if (s.includes('confirm') || s.includes('complet') || s === 'success' || s === 'succeeded') return 'confirmed';
+    if (s.includes('confirm') || s.includes('complet') || s === 'success' || s === 'succeeded')
+      return 'confirmed';
     if (s.includes('fail') || s === 'reverted' || s === 'error') return 'failed';
     if (s.includes('submit') || s === 'pending_confirmation') return 'submitted';
     return 'pending';

@@ -9,4 +9,9 @@ export class UpdateAgentPolicyDto {
   @IsArray()
   @IsString({ each: true })
   allowedActions?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  allowedDestinations?: string[];
 }

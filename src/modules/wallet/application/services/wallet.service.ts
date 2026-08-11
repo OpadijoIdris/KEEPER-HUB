@@ -27,7 +27,11 @@ export class WalletService {
    * second call re-points the agent at a different wallet rather than
    * erroring, since "I want to swap wallets" is a legitimate action.
    */
-  async linkWallet(agentId: string, address: string, keeperHubIntegrationId: string): Promise<AgentWallet> {
+  async linkWallet(
+    agentId: string,
+    address: string,
+    keeperHubIntegrationId: string,
+  ): Promise<AgentWallet> {
     const existing = await this.wallets.findByAgentId(agentId);
     if (existing) {
       existing.relink(address, keeperHubIntegrationId);
@@ -64,10 +68,17 @@ export class WalletService {
     kind: string,
     amount: string,
     asset: string,
+    destinationAddress?: string,
   ): Promise<PaymentAuthorization> {
     const wallet = await this.getWallet(agentId);
     const cumulativeSpendSoFar = await this.authorizations.sumAuthorizedAmount(agentId);
-    const permitted = await this.agentPolicyService.permits(agentId, kind, amount, cumulativeSpendSoFar);
+    const permitted = await this.agentPolicyService.permits(
+      agentId,
+      kind,
+      amount,
+      cumulativeSpendSoFar,
+      destinationAddress,
+    );
 
     const authorization = permitted
       ? PaymentAuthorization.authorize(wallet.id, agentId, kind, amount, asset)

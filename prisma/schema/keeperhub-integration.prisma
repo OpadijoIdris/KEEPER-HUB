@@ -3,7 +3,7 @@
 // exclusively by src/modules/keeperhub-integration.
 
 model Execution {
-  id                   String    @id @default(uuid())
+  id                   String   @id @default(uuid())
   agentId              String
   kind                 String
   params               Json
@@ -11,8 +11,8 @@ model Execution {
   keeperHubExecutionId String?
   transactionHash      String?
   failureReason        String?
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   @@index([agentId])
   @@map("keeperhub_executions")

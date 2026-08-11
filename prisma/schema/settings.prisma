@@ -3,11 +3,11 @@
 // no @relation into Identity's User model.
 
 model UserPreferences {
-  id                     String   @id @default(uuid())
-  userId                 String   @unique
-  notificationPreferences Json    @default("[]")
-  timezone               String   @default("UTC")
-  updatedAt              DateTime @updatedAt
+  id                      String   @id @default(uuid())
+  userId                  String   @unique
+  notificationPreferences Json     @default("[]")
+  timezone                String   @default("UTC")
+  updatedAt               DateTime @updatedAt
 
   @@map("settings_user_preferences")
 }
@@ -22,11 +22,12 @@ model PlatformSettings {
 }
 
 model AgentPolicy {
-  id             String   @id @default(uuid())
-  agentId        String   @unique
-  spendLimit     String   @default("0")
-  allowedActions Json     @default("[]")
-  updatedAt      DateTime @updatedAt
+  id                   String   @id @default(uuid())
+  agentId              String   @unique
+  spendLimit           String   @default("0")
+  allowedActions       Json     @default("[]")
+  destinationAllowlist Json     @default("[]")
+  updatedAt            DateTime @updatedAt
 
   @@map("settings_agent_policies")
 }

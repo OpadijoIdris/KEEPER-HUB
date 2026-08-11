@@ -4,6 +4,7 @@ import { ForbiddenError, NotFoundError } from '../../../../shared/domain/domain-
 // Direct file import, not the `ai` barrel — the barrel re-exports AiModule,
 // which imports this module (KeeperHubIntegration), creating a CommonJS
 // require() cycle at boot (AgentOwnerGuard ends up `undefined`).
+// eslint-disable-next-line boundaries/element-types -- see comment above
 import { AgentService } from '../../../ai/application/services/agent.service';
 import { ExecutionService } from '../../application/services/execution.service';
 

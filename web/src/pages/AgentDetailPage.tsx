@@ -22,6 +22,7 @@ interface AgentPolicy {
   agentId: string;
   spendLimit: string;
   allowedActions: string[];
+  allowedDestinations: string[];
 }
 
 interface Decision {
@@ -45,6 +46,7 @@ export function AgentDetailPage() {
 
   const [spendLimit, setSpendLimit] = useState('');
   const [allowedActions, setAllowedActions] = useState('');
+  const [allowedDestinations, setAllowedDestinations] = useState('');
   const [savingPolicy, setSavingPolicy] = useState(false);
 
   const [triggerContext, setTriggerContext] = useState('{\n  "currentApy": "5.2%"\n}');
@@ -65,6 +67,7 @@ export function AgentDetailPage() {
       setPolicy(policyResult);
       setSpendLimit(policyResult.spendLimit);
       setAllowedActions(policyResult.allowedActions.join(', '));
+      setAllowedDestinations(policyResult.allowedDestinations.join(', '));
       setDecisions(decisionsResult);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to load agent.');
@@ -103,6 +106,10 @@ export function AgentDetailPage() {
         body: {
           spendLimit,
           allowedActions: allowedActions
+            .split(',')
+            .map((a) => a.trim())
+            .filter(Boolean),
+          allowedDestinations: allowedDestinations
             .split(',')
             .map((a) => a.trim())
             .filter(Boolean),
@@ -217,6 +224,16 @@ export function AgentDetailPage() {
               <input
                 value={allowedActions}
                 onChange={(e) => setAllowedActions(e.target.value)}
+                className={inputClass}
+              />
+            </label>
+            <label className={labelClass}>
+              Allowed destination addresses (comma-separated, transfers only — leave empty for no
+              restriction)
+              <input
+                value={allowedDestinations}
+                onChange={(e) => setAllowedDestinations(e.target.value)}
+                placeholder="0xabc…, 0xdef…"
                 className={inputClass}
               />
             </label>

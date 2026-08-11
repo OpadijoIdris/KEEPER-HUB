@@ -36,7 +36,9 @@ export class NotificationEventSubscriber implements OnModuleInit {
     const payload = event.payload as ExecutionCompletedPayload;
     const agent = await this.agentService.getAgent(payload.agentId);
     if (!agent) {
-      this.logger.warn(`Execution completed for unknown agent "${payload.agentId}" — skipping notification.`);
+      this.logger.warn(
+        `Execution completed for unknown agent "${payload.agentId}" — skipping notification.`,
+      );
       return;
     }
     await this.notificationService.notifyExecutionCompleted(

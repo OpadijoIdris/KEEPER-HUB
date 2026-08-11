@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../identity';
 // Direct file import, not the `ai` barrel — see execution-owner.guard.ts's comment.
+// eslint-disable-next-line boundaries/element-types -- see comment above
 import { AgentOwnerGuard } from '../../../ai/interface/guards/agent-owner.guard';
 import { ExecutionService } from '../../application/services/execution.service';
 import { ExecutionOwnerGuard } from '../guards/execution-owner.guard';

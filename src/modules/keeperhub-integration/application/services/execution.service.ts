@@ -31,6 +31,7 @@ export class ExecutionService {
       'transfer',
       amount,
       tokenAddress ?? 'native',
+      toAddress,
     );
 
     const execution = Execution.create(agentId, 'transfer', {

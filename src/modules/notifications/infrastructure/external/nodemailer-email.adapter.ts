@@ -21,11 +21,15 @@ export class NodemailerEmailAdapter implements EmailPort {
   async send(to: string, subject: string, body: string): Promise<void> {
     const transporter = this.getTransporter();
     if (!transporter) {
-      this.logger.warn(`EMAIL_HOST/EMAIL_USER/EMAIL_PASS not configured — skipping email to ${to}.`);
+      this.logger.warn(
+        `EMAIL_HOST/EMAIL_USER/EMAIL_PASS not configured — skipping email to ${to}.`,
+      );
       return;
     }
 
-    const from = this.configService.get('email.from', { infer: true }) ?? this.configService.get('email.user', { infer: true });
+    const from =
+      this.configService.get('email.from', { infer: true }) ??
+      this.configService.get('email.user', { infer: true });
     await transporter.sendMail({ from, to, subject, text: body });
   }
 

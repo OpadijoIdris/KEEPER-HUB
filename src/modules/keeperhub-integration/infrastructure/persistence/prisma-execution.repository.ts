@@ -22,6 +22,14 @@ export class PrismaExecutionRepository implements ExecutionRepository {
     return records.map((record) => this.toDomain(record));
   }
 
+  async findByStatus(status: ExecutionStatus): Promise<Execution[]> {
+    const records = await this.prisma.execution.findMany({
+      where: { status },
+      orderBy: { createdAt: 'asc' },
+    });
+    return records.map((record) => this.toDomain(record));
+  }
+
   async save(execution: Execution): Promise<void> {
     await this.prisma.execution.upsert({
       where: { id: execution.id },

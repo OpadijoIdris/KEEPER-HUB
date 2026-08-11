@@ -22,10 +22,12 @@ export class PrismaAgentPolicyRepository implements AgentPolicyRepository {
         agentId: policy.agentId,
         spendLimit: policy.spendLimit,
         allowedActions: [...policy.allowedActions] as unknown as Prisma.InputJsonValue,
+        destinationAllowlist: [...policy.allowedDestinations] as unknown as Prisma.InputJsonValue,
       },
       update: {
         spendLimit: policy.spendLimit,
         allowedActions: [...policy.allowedActions] as unknown as Prisma.InputJsonValue,
+        destinationAllowlist: [...policy.allowedDestinations] as unknown as Prisma.InputJsonValue,
       },
     });
   }
@@ -36,6 +38,7 @@ export class PrismaAgentPolicyRepository implements AgentPolicyRepository {
       record.agentId,
       record.spendLimit,
       record.allowedActions as string[],
+      record.destinationAllowlist as string[],
     );
   }
 }

@@ -4,18 +4,18 @@
 // that's tracked as deferred hardening (see ROADMAP.md), since it needs a
 // dedicated restricted DB role we don't have yet (single role for now).
 model AuditEntry {
-  id             String   @id @default(uuid())
-  correlationId  String
-  occurredAt     DateTime
-  eventType      String
-  schemaVersion  Int
-  subjectType    String
-  subjectId      String
-  actorType      String
-  actorId        String
-  severity       String
-  payload        Json
-  createdAt      DateTime @default(now())
+  id            String   @id @default(uuid())
+  correlationId String
+  occurredAt    DateTime
+  eventType     String
+  schemaVersion Int
+  subjectType   String
+  subjectId     String
+  actorType     String
+  actorId       String
+  severity      String
+  payload       Json
+  createdAt     DateTime @default(now())
 
   @@index([correlationId])
   @@index([subjectId])

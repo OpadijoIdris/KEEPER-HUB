@@ -34,7 +34,12 @@ export class NotificationService {
       ? `Your agent "${agentName}" successfully executed an on-chain transaction (${transactionHash}).`
       : `Your agent "${agentName}" successfully completed an execution.`;
 
-    const notification = Notification.create(userId, 'keeperhub.execution.completed', title, message);
+    const notification = Notification.create(
+      userId,
+      'keeperhub.execution.completed',
+      title,
+      message,
+    );
     await this.notifications.save(notification);
 
     const preferences = await this.userPreferencesService.get(userId);
@@ -51,7 +56,9 @@ export class NotificationService {
     } catch (error) {
       // Delivery failure shouldn't fail the execution flow that triggered
       // this — the in-app notification above already succeeded regardless.
-      this.logger.warn(`Failed to email ${recipient}: ${error instanceof Error ? error.message : error}`);
+      this.logger.warn(
+        `Failed to email ${recipient}: ${error instanceof Error ? error.message : error}`,
+      );
     }
   }
 
