@@ -90,6 +90,12 @@ export class AuthService {
     return this.issueTokens(user);
   }
 
+  /** Notifications' Public API consumer — resolves a userId to a deliverable address before emailing. */
+  async getUserEmail(userId: string): Promise<string | null> {
+    const user = await this.users.findById(userId);
+    return user ? user.email.value : null;
+  }
+
   private async issueTokens(user: User): Promise<AuthTokens> {
     const accessToken = this.tokenIssuer.signAccessToken({ sub: user.id, role: user.role });
 

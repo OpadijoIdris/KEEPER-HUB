@@ -1,5 +1,8 @@
 import { Fragment, useEffect, useState } from 'react';
 import { apiFetch } from '../lib/api-client';
+import { Badge } from '../components/ui/Badge';
+import { Button } from '../components/ui/Button';
+import { inputClass } from '../lib/ui';
 
 interface AuditEntry {
   id: string;
@@ -21,12 +24,6 @@ interface PaginatedResult<T> {
 
 const PAGE_SIZE = 20;
 
-const severityClass: Record<string, string> = {
-  info: 'text-slate-500',
-  warning: 'text-amber-600',
-  critical: 'text-red-600',
-};
-
 export function AuditLogPage() {
   const [result, setResult] = useState<PaginatedResult<AuditEntry> | null>(null);
   const [eventType, setEventType] = useState('');
@@ -46,7 +43,7 @@ export function AuditLogPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-lg font-semibold text-slate-900">Audit log</h1>
+      <h1 className="text-xl font-bold tracking-tight text-white">Audit log</h1>
 
       <div className="flex gap-2">
         <input
@@ -56,7 +53,7 @@ export function AuditLogPage() {
             setEventType(e.target.value);
           }}
           placeholder="Filter by event type"
-          className="w-56 rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className={`w-56 ${inputClass}`}
         />
         <input
           value={subjectId}
@@ -65,7 +62,7 @@ export function AuditLogPage() {
             setSubjectId(e.target.value);
           }}
           placeholder="Filter by subject id"
-          className="w-72 rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className={`w-72 ${inputClass}`}
         />
       </div>
 
@@ -74,69 +71,68 @@ export function AuditLogPage() {
       ) : result.items.length === 0 ? (
         <p className="text-sm text-slate-500">No matching audit entries.</p>
       ) : (
-        <table className="w-full border-collapse text-left text-sm">
-          <thead>
-            <tr className="border-b border-slate-200 text-slate-500">
-              <th className="py-2 pr-4 font-medium">Occurred</th>
-              <th className="py-2 pr-4 font-medium">Event type</th>
-              <th className="py-2 pr-4 font-medium">Subject</th>
-              <th className="py-2 pr-4 font-medium">Actor</th>
-              <th className="py-2 pr-4 font-medium">Severity</th>
-            </tr>
-          </thead>
-          <tbody>
-            {result.items.map((entry) => (
-              <Fragment key={entry.id}>
-                <tr
-                  onClick={() => setExpanded(expanded === entry.id ? null : entry.id)}
-                  className="cursor-pointer border-b border-slate-100 hover:bg-slate-50"
-                >
-                  <td className="py-2 pr-4 text-slate-500">
-                    {new Date(entry.occurredAt).toLocaleString()}
-                  </td>
-                  <td className="py-2 pr-4 font-mono text-xs">{entry.eventType}</td>
-                  <td className="py-2 pr-4">
-                    {entry.subject.type}:{entry.subject.id.slice(0, 8)}
-                  </td>
-                  <td className="py-2 pr-4">{entry.actor.type}</td>
-                  <td className={`py-2 pr-4 font-medium ${severityClass[entry.severity] ?? ''}`}>
-                    {entry.severity}
-                  </td>
-                </tr>
-                {expanded === entry.id && (
-                  <tr className="border-b border-slate-100 bg-slate-50">
-                    <td colSpan={5} className="px-4 py-3">
-                      <pre className="overflow-x-auto text-xs text-slate-600">
-                        {JSON.stringify(entry.payload, null, 2)}
-                      </pre>
+        <div className="overflow-x-auto rounded-xl border border-slate-800">
+          <table className="w-full border-collapse text-left text-sm">
+            <thead>
+              <tr className="border-b border-slate-800 text-slate-500">
+                <th className="py-2 pl-4 pr-4 font-medium">Occurred</th>
+                <th className="py-2 pr-4 font-medium">Event type</th>
+                <th className="py-2 pr-4 font-medium">Subject</th>
+                <th className="py-2 pr-4 font-medium">Actor</th>
+                <th className="py-2 pr-4 font-medium">Severity</th>
+              </tr>
+            </thead>
+            <tbody>
+              {result.items.map((entry) => (
+                <Fragment key={entry.id}>
+                  <tr
+                    onClick={() => setExpanded(expanded === entry.id ? null : entry.id)}
+                    className="cursor-pointer border-b border-slate-800/60 last:border-0 hover:bg-slate-900/40"
+                  >
+                    <td className="py-2 pl-4 pr-4 text-slate-500">
+                      {new Date(entry.occurredAt).toLocaleString()}
+                    </td>
+                    <td className="py-2 pr-4 font-mono text-xs text-slate-300">{entry.eventType}</td>
+                    <td className="py-2 pr-4 text-slate-300">
+                      {entry.subject.type}:{entry.subject.id.slice(0, 8)}
+                    </td>
+                    <td className="py-2 pr-4 text-slate-300">{entry.actor.type}</td>
+                    <td className="py-2 pr-4">
+                      <Badge status={entry.severity} />
                     </td>
                   </tr>
-                )}
-              </Fragment>
-            ))}
-          </tbody>
-        </table>
+                  {expanded === entry.id && (
+                    <tr className="border-b border-slate-800/60 bg-slate-900/60">
+                      <td colSpan={5} className="px-4 py-3">
+                        <pre className="overflow-x-auto text-xs text-slate-400">
+                          {JSON.stringify(entry.payload, null, 2)}
+                        </pre>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {result && (
-        <div className="flex items-center gap-3 text-sm text-slate-500">
-          <button
-            disabled={page <= 1}
-            onClick={() => setPage((p) => p - 1)}
-            className="rounded-md border border-slate-300 px-3 py-1 disabled:opacity-40"
-          >
+        <div className="flex items-center gap-3 text-sm text-slate-400">
+          <Button variant="secondary" disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="px-3 py-1 text-xs">
             Prev
-          </button>
+          </Button>
           <span>
             Page {result.page} of {totalPages} ({result.total} total)
           </span>
-          <button
+          <Button
+            variant="secondary"
             disabled={page >= totalPages}
             onClick={() => setPage((p) => p + 1)}
-            className="rounded-md border border-slate-300 px-3 py-1 disabled:opacity-40"
+            className="px-3 py-1 text-xs"
           >
             Next
-          </button>
+          </Button>
         </div>
       )}
     </div>

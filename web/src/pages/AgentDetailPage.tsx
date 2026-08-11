@@ -1,6 +1,12 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { apiFetch, ApiError } from '../lib/api-client';
+import { Card } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
+import { staggerContainer, staggerItem } from '../components/ui/PageTransition';
+import { inputClass, labelClass } from '../lib/ui';
 
 interface Agent {
   id: string;
@@ -27,19 +33,6 @@ interface Decision {
   resultingExecutionId: string | null;
   evaluatedAt: string;
 }
-
-const statusClass: Record<string, string> = {
-  draft: 'text-slate-500',
-  active: 'text-green-600',
-  paused: 'text-amber-600',
-  retired: 'text-slate-400',
-};
-
-const outcomeClass: Record<string, string> = {
-  execute: 'text-green-600',
-  skip: 'text-slate-500',
-  blocked: 'text-red-600',
-};
 
 export function AgentDetailPage() {
   const { agentId } = useParams<{ agentId: string }>();
@@ -147,147 +140,145 @@ export function AgentDetailPage() {
   }
 
   if (loading) return <p className="text-sm text-slate-500">Loading…</p>;
-  if (!agent) return <p className="text-sm text-red-600">{error ?? 'Agent not found.'}</p>;
+  if (!agent) return <p className="text-sm text-red-400">{error ?? 'Agent not found.'}</p>;
 
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between">
         <div>
-          <Link to="/agents" className="text-xs text-slate-500 hover:underline">
+          <Link to="/agents" className="text-xs text-slate-500 hover:text-slate-300">
             ← Agents
           </Link>
-          <h1 className="text-lg font-semibold text-slate-900">{agent.name}</h1>
-          <p className="text-sm text-slate-500">{agent.monitoredTrigger}</p>
+          <h1 className="text-xl font-bold tracking-tight text-white">{agent.name}</h1>
+          <p className="text-sm text-slate-400">{agent.monitoredTrigger}</p>
         </div>
-        <span className={`text-sm font-medium ${statusClass[agent.status] ?? ''}`}>
-          {agent.status}
-        </span>
+        <Badge status={agent.status} />
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-400">{error}</p>}
 
-      <section className="rounded-md border border-slate-200 p-4">
-        <h2 className="mb-2 text-sm font-semibold text-slate-900">Rules</h2>
-        <p className="text-sm text-slate-700">{agent.rules}</p>
-        <div className="mt-4 flex gap-2">
-          <button
+      <Card>
+        <h2 className="mb-2 text-sm font-semibold text-white">Rules</h2>
+        <p className="text-sm text-slate-300">{agent.rules}</p>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <Button
+            variant="success"
             onClick={() => changeStatus('activate')}
             disabled={statusChanging || agent.status === 'active'}
-            className="rounded-md bg-green-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-40"
+            className="px-3 py-1.5 text-xs"
           >
             Activate
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="warning"
             onClick={() => changeStatus('pause')}
             disabled={statusChanging || agent.status !== 'active'}
-            className="rounded-md bg-amber-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-40"
+            className="px-3 py-1.5 text-xs"
           >
             Pause
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="secondary"
             onClick={() => changeStatus('retire')}
             disabled={statusChanging || agent.status === 'retired'}
-            className="rounded-md bg-slate-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-40"
+            className="px-3 py-1.5 text-xs"
           >
             Retire
-          </button>
+          </Button>
           <Link
             to={`/wallet?agentId=${agent.id}`}
-            className="rounded-md px-3 py-1.5 text-xs font-medium text-slate-600 underline"
+            className="rounded-lg px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white"
           >
             View wallet
           </Link>
           <Link
             to={`/executions?agentId=${agent.id}`}
-            className="rounded-md px-3 py-1.5 text-xs font-medium text-slate-600 underline"
+            className="rounded-lg px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white"
           >
             View executions
           </Link>
         </div>
-      </section>
+      </Card>
 
-      <section className="rounded-md border border-slate-200 p-4">
-        <h2 className="mb-3 text-sm font-semibold text-slate-900">Policy</h2>
+      <Card>
+        <h2 className="mb-3 text-sm font-semibold text-white">Policy</h2>
         {policy && (
-          <form onSubmit={savePolicy} className="flex flex-col gap-2">
-            <label className="text-xs text-slate-500">
+          <form onSubmit={savePolicy} className="flex flex-col gap-3">
+            <label className={labelClass}>
               Spend limit (cumulative total)
               <input
                 value={spendLimit}
                 onChange={(e) => setSpendLimit(e.target.value)}
-                className="mt-1 w-40 rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className={`w-40 ${inputClass}`}
               />
             </label>
-            <label className="text-xs text-slate-500">
+            <label className={labelClass}>
               Allowed actions (comma-separated, e.g. transfer, protocol_action)
               <input
                 value={allowedActions}
                 onChange={(e) => setAllowedActions(e.target.value)}
-                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className={inputClass}
               />
             </label>
-            <button
-              type="submit"
-              disabled={savingPolicy}
-              className="w-fit rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-            >
+            <Button type="submit" disabled={savingPolicy} className="w-fit">
               {savingPolicy ? 'Saving…' : 'Save policy'}
-            </button>
+            </Button>
           </form>
         )}
-      </section>
+      </Card>
 
-      <section className="rounded-md border border-slate-200 p-4">
-        <h2 className="mb-3 text-sm font-semibold text-slate-900">Evaluate now</h2>
+      <Card>
+        <h2 className="mb-3 text-sm font-semibold text-white">Evaluate now</h2>
         <p className="mb-3 text-xs text-slate-500">
           No live trigger system yet — paste the current state of what this agent monitors and it
           will reason over it via the LLM, same as a real trigger firing would.
         </p>
-        <form onSubmit={evaluate} className="flex flex-col gap-2">
+        <form onSubmit={evaluate} className="flex flex-col gap-3">
           <textarea
             value={triggerContext}
             onChange={(e) => setTriggerContext(e.target.value)}
             rows={4}
-            className="rounded-md border border-slate-300 px-3 py-2 font-mono text-xs"
+            className={`font-mono text-xs ${inputClass}`}
           />
-          <button
-            type="submit"
-            disabled={evaluating}
-            className="w-fit rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-          >
+          <Button type="submit" disabled={evaluating} className="w-fit">
             {evaluating ? 'Evaluating…' : 'Evaluate'}
-          </button>
+          </Button>
         </form>
-      </section>
+      </Card>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold text-slate-900">Decision log</h2>
+        <h2 className="mb-3 text-sm font-semibold text-white">Decision log</h2>
         {decisions.length === 0 ? (
           <p className="text-sm text-slate-500">No decisions yet.</p>
         ) : (
-          <ul className="flex flex-col gap-2">
+          <motion.ul
+            variants={staggerContainer}
+            initial="hidden"
+            animate="show"
+            className="flex flex-col gap-2"
+          >
             {decisions.map((decision) => (
-              <li key={decision.id} className="rounded-md border border-slate-200 p-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className={`font-medium ${outcomeClass[decision.outcome] ?? ''}`}>
-                    {decision.outcome}
-                  </span>
-                  <span className="text-xs text-slate-400">
-                    {new Date(decision.evaluatedAt).toLocaleString()}
-                  </span>
-                </div>
-                <p className="mt-1 text-slate-700">{decision.rationale}</p>
-                {decision.resultingExecutionId && (
-                  <Link
-                    to={`/executions?agentId=${agent.id}`}
-                    className="mt-1 inline-block text-xs text-slate-500 underline"
-                  >
-                    execution {decision.resultingExecutionId}
-                  </Link>
-                )}
-              </li>
+              <motion.li key={decision.id} variants={staggerItem}>
+                <Card className="p-4 text-sm">
+                  <div className="flex items-center justify-between">
+                    <Badge status={decision.outcome} />
+                    <span className="text-xs text-slate-500">
+                      {new Date(decision.evaluatedAt).toLocaleString()}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-slate-300">{decision.rationale}</p>
+                  {decision.resultingExecutionId && (
+                    <Link
+                      to={`/executions?agentId=${agent.id}`}
+                      className="mt-1 inline-block text-xs text-indigo-400 hover:text-indigo-300"
+                    >
+                      execution {decision.resultingExecutionId}
+                    </Link>
+                  )}
+                </Card>
+              </motion.li>
             ))}
-          </ul>
+          </motion.ul>
         )}
       </section>
     </div>

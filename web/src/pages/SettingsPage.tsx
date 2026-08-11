@@ -1,6 +1,15 @@
 import { useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../lib/api-client';
 import { useAuth } from '../lib/auth-context';
+import { Card } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { inputClass } from '../lib/ui';
+
+// Same source of truth as the backend's Timezone value object (Intl's IANA
+// database), so the dropdown can never offer a value the server would
+// reject. "UTC" isn't always enumerated by Intl.supportedValuesOf — added
+// explicitly since it's the platform default (see timezone.vo.ts).
+const TIMEZONES = Array.from(new Set(['UTC', ...Intl.supportedValuesOf('timeZone')])).sort();
 
 interface NotificationPreference {
   channel: 'email' | 'webhook' | 'in_app';
@@ -23,11 +32,15 @@ export function SettingsPage() {
 
   useEffect(() => {
     if (!user) return;
-    apiFetch<UserPreferences>(`/users/${user.sub}/preferences`).then((prefs) => {
-      setPreferences(prefs);
-      setTimezoneInput(prefs.timezone);
-    });
-    apiFetch<Record<string, boolean>>('/feature-flags').then(setFeatureFlags);
+    apiFetch<UserPreferences>(`/users/${user.sub}/preferences`)
+      .then((prefs) => {
+        setPreferences(prefs);
+        setTimezoneInput(prefs.timezone);
+      })
+      .catch((err) => setError(err instanceof ApiError ? err.message : 'Failed to load preferences.'));
+    apiFetch<Record<string, boolean>>('/feature-flags')
+      .then(setFeatureFlags)
+      .catch(() => {});
   }, [user]);
 
   async function saveTimezone() {
@@ -79,63 +92,66 @@ export function SettingsPage() {
   }
 
   if (!preferences) {
-    return <p className="text-slate-500">Loading…</p>;
+    return <p className={error ? 'text-sm text-red-400' : 'text-sm text-slate-500'}>{error ?? 'Loading…'}</p>;
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      <section>
-        <h2 className="mb-3 text-lg font-semibold text-slate-900">Timezone</h2>
+    <div className="flex flex-col gap-6">
+      <h1 className="text-xl font-bold tracking-tight text-white">Settings</h1>
+
+      <Card>
+        <h2 className="mb-3 text-sm font-semibold text-white">Timezone</h2>
         <div className="flex gap-2">
-          <input
+          <select
             value={timezoneInput}
             onChange={(e) => setTimezoneInput(e.target.value)}
-            placeholder="e.g. Europe/London"
-            className="w-64 rounded-md border border-slate-300 px-3 py-2 text-sm"
-          />
-          <button
-            onClick={saveTimezone}
-            disabled={status === 'saving'}
-            className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            className={`w-64 ${inputClass}`}
           >
+            {TIMEZONES.map((tz) => (
+              <option key={tz} value={tz} className="bg-slate-900">
+                {tz}
+              </option>
+            ))}
+          </select>
+          <Button onClick={saveTimezone} disabled={status === 'saving'}>
             Save
-          </button>
+          </Button>
         </div>
-      </section>
+      </Card>
 
-      <section>
-        <h2 className="mb-3 text-lg font-semibold text-slate-900">Notification channels</h2>
-        <div className="flex flex-col gap-2">
+      <Card>
+        <h2 className="mb-3 text-sm font-semibold text-white">Notification channels</h2>
+        <div className="flex flex-col gap-3">
           {preferences.notificationPreferences.map((pref) => (
-            <label key={pref.channel} className="flex items-center gap-3 text-sm text-slate-700">
+            <label key={pref.channel} className="flex items-center gap-3 text-sm text-slate-300">
               <input
                 type="checkbox"
                 checked={pref.enabled}
                 onChange={(e) => toggleChannel(pref.channel, e.target.checked)}
-                className="h-4 w-4"
+                className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-indigo-500 focus:ring-indigo-400"
               />
               {pref.channel}
             </label>
           ))}
         </div>
-      </section>
+      </Card>
 
-      <section>
-        <h2 className="mb-3 text-lg font-semibold text-slate-900">Platform feature flags</h2>
+      <Card>
+        <h2 className="mb-3 text-sm font-semibold text-white">Platform feature flags</h2>
         {Object.keys(featureFlags).length === 0 ? (
           <p className="text-sm text-slate-500">No flags set yet.</p>
         ) : (
-          <ul className="text-sm text-slate-700">
+          <ul className="flex flex-col gap-1.5 text-sm text-slate-300">
             {Object.entries(featureFlags).map(([flag, enabled]) => (
-              <li key={flag}>
-                {flag}: {enabled ? 'on' : 'off'}
+              <li key={flag} className="font-mono text-xs">
+                {flag}: <span className={enabled ? 'text-emerald-400' : 'text-slate-500'}>{enabled ? 'on' : 'off'}</span>
               </li>
             ))}
           </ul>
         )}
-      </section>
+      </Card>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-400">{error}</p>}
     </div>
   );
 }

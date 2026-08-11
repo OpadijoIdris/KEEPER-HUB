@@ -22,4 +22,12 @@ export const envValidationSchema = Joi.object({
   OXLO_BASE_URL: Joi.string().uri().optional(),
   OXLO_API_KEY: Joi.string().allow('').optional(),
   OXLO_MODEL: Joi.string().optional(),
+
+  // Optional until Notifications sends its first real email — without these,
+  // NodemailerEmailAdapter logs a warning and skips delivery instead of failing.
+  EMAIL_HOST: Joi.string().allow('').optional(),
+  EMAIL_PORT: Joi.number().optional(),
+  EMAIL_USER: Joi.string().allow('').optional(),
+  EMAIL_PASS: Joi.string().allow('').optional(),
+  EMAIL_FROM: Joi.string().allow('').optional(),
 });

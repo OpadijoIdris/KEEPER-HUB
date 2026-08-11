@@ -1,0 +1,14 @@
+// Notifications module (docs/ARCHITECTURE.md §4.7). Owned exclusively by src/modules/notifications.
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("notifications")
+}

@@ -1,6 +1,12 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { apiFetch, ApiError } from '../lib/api-client';
+import { Card } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
+import { staggerContainer, staggerItem } from '../components/ui/PageTransition';
+import { inputClass } from '../lib/ui';
 
 interface Agent {
   id: string;
@@ -11,13 +17,6 @@ interface Agent {
   status: string;
   createdAt: string;
 }
-
-const statusClass: Record<string, string> = {
-  draft: 'text-slate-500',
-  active: 'text-green-600',
-  paused: 'text-amber-600',
-  retired: 'text-slate-400',
-};
 
 export function AgentsPage() {
   const [agents, setAgents] = useState<Agent[]>([]);
@@ -68,24 +67,24 @@ export function AgentsPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="text-lg font-semibold text-slate-900">Agents</h1>
+      <h1 className="text-xl font-bold tracking-tight text-white">Agents</h1>
 
-      <section className="rounded-md border border-slate-200 p-4">
-        <h2 className="mb-3 text-sm font-semibold text-slate-900">New agent</h2>
+      <Card>
+        <h2 className="mb-3 text-sm font-semibold text-white">New agent</h2>
         <form onSubmit={createAgent} className="flex flex-col gap-2">
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Name (e.g. Yield Watcher)"
             required
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className={inputClass}
           />
           <input
             value={monitoredTrigger}
             onChange={(e) => setMonitoredTrigger(e.target.value)}
             placeholder="What it monitors (e.g. USDC lending APY on Aave, Base chain)"
             required
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className={inputClass}
           />
           <textarea
             value={rules}
@@ -93,45 +92,43 @@ export function AgentsPage() {
             placeholder="Rules (e.g. If APY rises above 8%, deposit 100 USDC. Otherwise do nothing.)"
             required
             rows={2}
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className={inputClass}
           />
-          <button
-            type="submit"
-            disabled={creating}
-            className="w-fit rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-          >
+          <Button type="submit" disabled={creating} className="w-fit">
             {creating ? 'Creating…' : 'Create agent'}
-          </button>
+          </Button>
         </form>
-      </section>
+      </Card>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-400">{error}</p>}
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold text-slate-900">Your agents</h2>
+        <h2 className="mb-3 text-sm font-semibold text-white">Your agents</h2>
         {loading ? (
           <p className="text-sm text-slate-500">Loading…</p>
         ) : agents.length === 0 ? (
           <p className="text-sm text-slate-500">No agents yet.</p>
         ) : (
-          <ul className="flex flex-col gap-2">
+          <motion.ul
+            variants={staggerContainer}
+            initial="hidden"
+            animate="show"
+            className="flex flex-col gap-2"
+          >
             {agents.map((agent) => (
-              <li key={agent.id}>
-                <Link
-                  to={`/agents/${agent.id}`}
-                  className="flex items-center justify-between rounded-md border border-slate-200 p-3 text-sm hover:bg-slate-50"
-                >
-                  <div>
-                    <div className="font-medium text-slate-900">{agent.name}</div>
-                    <div className="text-xs text-slate-500">{agent.monitoredTrigger}</div>
-                  </div>
-                  <span className={`text-xs font-medium ${statusClass[agent.status] ?? ''}`}>
-                    {agent.status}
-                  </span>
+              <motion.li key={agent.id} variants={staggerItem}>
+                <Link to={`/agents/${agent.id}`}>
+                  <Card hover className="flex items-center justify-between p-4">
+                    <div>
+                      <div className="text-sm font-medium text-white">{agent.name}</div>
+                      <div className="text-xs text-slate-400">{agent.monitoredTrigger}</div>
+                    </div>
+                    <Badge status={agent.status} />
+                  </Card>
                 </Link>
-              </li>
+              </motion.li>
             ))}
-          </ul>
+          </motion.ul>
         )}
       </section>
     </div>

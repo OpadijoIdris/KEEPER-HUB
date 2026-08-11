@@ -1,6 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { apiFetch, ApiError } from '../lib/api-client';
+import { Card } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
+import { inputClass } from '../lib/ui';
 
 interface Execution {
   id: string;
@@ -20,13 +24,6 @@ interface ProtocolAction {
   description: string;
 }
 
-const statusClass: Record<string, string> = {
-  pending: 'text-slate-500',
-  submitted: 'text-amber-600',
-  confirmed: 'text-green-600',
-  failed: 'text-red-600',
-};
-
 /**
  * Lookup-by-id, same pattern as WalletPage — AgentDetailPage (F7) links
  * here with ?agentId= prefilled. Executes real on-chain transactions via
@@ -37,7 +34,7 @@ const statusClass: Record<string, string> = {
  */
 export function ExecutionsPage() {
   const [searchParams] = useSearchParams();
-  const [agentId, setAgentId] = useState(searchParams.get('agentId') ?? 'demo-agent-1');
+  const [agentId, setAgentId] = useState(searchParams.get('agentId') ?? '');
   const [executions, setExecutions] = useState<Execution[]>([]);
   const [actions, setActions] = useState<ProtocolAction[]>([]);
   const [protocolQuery, setProtocolQuery] = useState('chronicle');
@@ -124,11 +121,11 @@ export function ExecutionsPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="text-lg font-semibold text-slate-900">Executions</h1>
+      <h1 className="text-xl font-bold tracking-tight text-white">Executions</h1>
 
-      <section className="rounded-md border border-amber-200 bg-amber-50 p-4">
-        <h2 className="mb-3 text-sm font-semibold text-slate-900">New transfer</h2>
-        <p className="mb-3 text-xs text-amber-700">
+      <Card className="border-amber-500/30 bg-amber-500/[0.04]">
+        <h2 className="mb-3 text-sm font-semibold text-white">New transfer</h2>
+        <p className="mb-3 text-xs text-amber-400/90">
           This submits a real on-chain transaction via KeeperHub and moves real funds from the
           linked wallet.
         </p>
@@ -138,142 +135,132 @@ export function ExecutionsPage() {
               value={chainId}
               onChange={(e) => setChainId(e.target.value)}
               placeholder="Chain ID (e.g. 8453 for Base)"
-              className="w-56 rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className={`w-56 ${inputClass}`}
             />
             <input
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="Amount (e.g. 0.001)"
-              className="w-40 rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className={`w-40 ${inputClass}`}
             />
           </div>
           <input
             value={toAddress}
             onChange={(e) => setToAddress(e.target.value)}
             placeholder="Recipient address (0x...)"
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className={inputClass}
           />
           <input
             value={tokenAddress}
             onChange={(e) => setTokenAddress(e.target.value)}
             placeholder="Token address (leave blank for native token)"
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className={inputClass}
           />
-          <label className="flex items-center gap-2 text-xs text-slate-700">
+          <label className="flex items-center gap-2 text-xs text-slate-300">
             <input
               type="checkbox"
               checked={confirmed}
               onChange={(e) => setConfirmed(e.target.checked)}
+              className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-400"
             />
             I understand this moves real funds and cannot be undone.
           </label>
-          <button
-            type="submit"
-            disabled={!confirmed || submitting}
-            className="w-fit rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
-          >
+          <Button type="submit" variant="warning" disabled={!confirmed || submitting} className="w-fit">
             {submitting ? 'Submitting…' : 'Submit transfer'}
-          </button>
+          </Button>
         </form>
-      </section>
+      </Card>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold text-slate-900">Agent execution history</h2>
+        <h2 className="mb-3 text-sm font-semibold text-white">Agent execution history</h2>
         <form onSubmit={loadExecutions} className="mb-3 flex gap-2">
           <input
             value={agentId}
             onChange={(e) => setAgentId(e.target.value)}
             placeholder="Agent ID"
-            className="w-64 rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className={`w-64 ${inputClass}`}
           />
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-          >
+          <Button type="submit" variant="secondary" disabled={loading}>
             {loading ? 'Loading…' : 'Load'}
-          </button>
+          </Button>
         </form>
 
         {executions.length === 0 ? (
           <p className="text-sm text-slate-500">No executions yet.</p>
         ) : (
-          <table className="w-full border-collapse text-left text-sm">
-            <thead>
-              <tr className="border-b border-slate-200 text-slate-500">
-                <th className="py-2 pr-4 font-medium">Created</th>
-                <th className="py-2 pr-4 font-medium">Kind</th>
-                <th className="py-2 pr-4 font-medium">Status</th>
-                <th className="py-2 pr-4 font-medium">Tx hash</th>
-                <th className="py-2 pr-4 font-medium"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {executions.map((execution) => (
-                <tr key={execution.id} className="border-b border-slate-100">
-                  <td className="py-2 pr-4 text-slate-500">
-                    {new Date(execution.createdAt).toLocaleString()}
-                  </td>
-                  <td className="py-2 pr-4">{execution.kind}</td>
-                  <td className={`py-2 pr-4 font-medium ${statusClass[execution.status] ?? ''}`}>
-                    {execution.status}
-                    {execution.failureReason && (
-                      <span className="ml-2 text-xs text-slate-400">
-                        {execution.failureReason}
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-2 pr-4 font-mono text-xs">
-                    {execution.transactionHash ?? '—'}
-                  </td>
-                  <td className="py-2 pr-4">
-                    {(execution.status === 'submitted' || execution.status === 'pending') && (
-                      <button
-                        onClick={() => refresh(execution.id)}
-                        className="text-xs font-medium text-slate-600 underline"
-                      >
-                        Refresh
-                      </button>
-                    )}
-                  </td>
+          <div className="overflow-x-auto rounded-xl border border-slate-800">
+            <table className="w-full border-collapse text-left text-sm">
+              <thead>
+                <tr className="border-b border-slate-800 text-slate-500">
+                  <th className="py-2 pl-4 pr-4 font-medium">Created</th>
+                  <th className="py-2 pr-4 font-medium">Kind</th>
+                  <th className="py-2 pr-4 font-medium">Status</th>
+                  <th className="py-2 pr-4 font-medium">Tx hash</th>
+                  <th className="py-2 pr-4 font-medium"></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {executions.map((execution) => (
+                  <tr key={execution.id} className="border-b border-slate-800/60 last:border-0 hover:bg-slate-900/40">
+                    <td className="py-2 pl-4 pr-4 text-slate-500">
+                      {new Date(execution.createdAt).toLocaleString()}
+                    </td>
+                    <td className="py-2 pr-4 text-slate-200">{execution.kind}</td>
+                    <td className="py-2 pr-4">
+                      <Badge status={execution.status} />
+                      {execution.failureReason && (
+                        <span className="ml-2 text-xs text-slate-500">{execution.failureReason}</span>
+                      )}
+                    </td>
+                    <td className="py-2 pr-4 font-mono text-xs text-slate-400">
+                      {execution.transactionHash ?? '—'}
+                    </td>
+                    <td className="py-2 pr-4">
+                      {(execution.status === 'submitted' || execution.status === 'pending') && (
+                        <button
+                          onClick={() => refresh(execution.id)}
+                          className="text-xs font-medium text-indigo-400 hover:text-indigo-300"
+                        >
+                          Refresh
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold text-slate-900">
-          Browse available protocol actions
-        </h2>
+        <h2 className="mb-3 text-sm font-semibold text-white">Browse available protocol actions</h2>
         <form onSubmit={searchActions} className="mb-3 flex gap-2">
           <input
             value={protocolQuery}
             onChange={(e) => setProtocolQuery(e.target.value)}
             placeholder="Protocol (e.g. chronicle, aave-v3)"
-            className="w-64 rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className={`w-64 ${inputClass}`}
           />
-          <button
-            type="submit"
-            className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white"
-          >
+          <Button type="submit" variant="secondary">
             Search
-          </button>
+          </Button>
         </form>
         {actions.length > 0 && (
           <ul className="flex flex-col gap-2 text-sm">
             {actions.map((action) => (
-              <li key={action.actionType} className="rounded-md border border-slate-200 p-3">
-                <div className="font-mono text-xs text-slate-900">{action.actionType}</div>
-                <div className="text-slate-500">{action.description}</div>
+              <li key={action.actionType}>
+                <Card className="p-3">
+                  <div className="font-mono text-xs text-white">{action.actionType}</div>
+                  <div className="text-slate-400">{action.description}</div>
+                </Card>
               </li>
             ))}
           </ul>
         )}
       </section>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-400">{error}</p>}
     </div>
   );
 }

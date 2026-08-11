@@ -20,6 +20,13 @@ export interface AppConfig {
     oxloApiKey?: string;
     oxloModel: string;
   };
+  email: {
+    host?: string;
+    port: number;
+    user?: string;
+    pass?: string;
+    from?: string;
+  };
 }
 
 export default (): AppConfig => ({
@@ -43,5 +50,12 @@ export default (): AppConfig => ({
     oxloBaseUrl: process.env.OXLO_BASE_URL,
     oxloApiKey: process.env.OXLO_API_KEY,
     oxloModel: process.env.OXLO_MODEL ?? 'deepseek-r1-8b',
+  },
+  email: {
+    host: process.env.EMAIL_HOST,
+    port: parseInt(process.env.EMAIL_PORT ?? '587', 10),
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+    from: process.env.EMAIL_FROM,
   },
 });

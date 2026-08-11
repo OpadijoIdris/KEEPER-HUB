@@ -13,4 +13,13 @@ describe('Timezone', () => {
   it('defaults to UTC', () => {
     expect(Timezone.default().value).toBe('UTC');
   });
+
+  it('accepts "UTC" via create() too — regression: default() must round-trip through persistence', () => {
+    // Node's Intl.supportedValuesOf('timeZone') doesn't enumerate "UTC" on
+    // every ICU build; without the explicit exception in create(), a stored
+    // default timezone can never be read back (findByUserId always calls
+    // Timezone.create(record.timezone)) and every fresh user's
+    // GET /users/:id/preferences 400s forever.
+    expect(Timezone.create('UTC').value).toBe('UTC');
+  });
 });

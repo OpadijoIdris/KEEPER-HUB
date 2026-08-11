@@ -26,6 +26,6 @@ import { AGENT_POLICY_REPOSITORY } from './domain/ports/agent-policy.repository'
     { provide: PLATFORM_SETTINGS_REPOSITORY, useClass: PrismaPlatformSettingsRepository },
     { provide: AGENT_POLICY_REPOSITORY, useClass: PrismaAgentPolicyRepository },
   ],
-  exports: [PlatformSettingsService, AgentPolicyService],
+  exports: [PlatformSettingsService, AgentPolicyService, UserPreferencesService],
 })
 export class SettingsModule {}

@@ -37,6 +37,6 @@ import { TOKEN_ISSUER } from './domain/ports/token-issuer.port';
     { provide: PASSWORD_HASHER, useClass: BcryptPasswordHasher },
     { provide: TOKEN_ISSUER, useClass: JwtTokenIssuerAdapter },
   ],
-  exports: [JwtAuthGuard],
+  exports: [JwtAuthGuard, AuthService],
 })
 export class IdentityModule {}

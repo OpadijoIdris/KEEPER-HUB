@@ -1,6 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { apiFetch, ApiError } from '../lib/api-client';
+import { Card } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { inputClass } from '../lib/ui';
 
 interface AgentWallet {
   agentId: string;
@@ -91,40 +94,36 @@ export function WalletPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-lg font-semibold text-slate-900">Wallet</h1>
+      <h1 className="text-xl font-bold tracking-tight text-white">Wallet</h1>
 
       <form onSubmit={lookup} className="flex gap-2">
         <input
           value={agentId}
           onChange={(e) => setAgentId(e.target.value)}
           placeholder="Agent ID"
-          className="w-64 rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className={`w-64 ${inputClass}`}
         />
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-        >
+        <Button type="submit" disabled={loading} variant="secondary">
           {loading ? 'Loading…' : 'Look up'}
-        </button>
+        </Button>
       </form>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-400">{error}</p>}
 
       {wallet && (
-        <section className="flex flex-col gap-2 rounded-md border border-slate-200 p-4">
-          <div className="text-sm text-slate-500">Linked KeeperHub wallet</div>
-          <div className="font-mono text-sm text-slate-900">{wallet.address}</div>
-          <div className="text-xs text-slate-400">
+        <Card className="flex flex-col gap-2">
+          <div className="text-sm text-slate-400">Linked KeeperHub wallet</div>
+          <div className="font-mono text-sm text-white">{wallet.address}</div>
+          <div className="text-xs text-slate-500">
             integration {wallet.keeperHubIntegrationId} · linked{' '}
             {new Date(wallet.linkedAt).toLocaleString()}
           </div>
-        </section>
+        </Card>
       )}
 
       {looked && agentId && (
-        <section className="rounded-md border border-slate-200 p-4">
-          <h2 className="mb-1 text-sm font-semibold text-slate-900">
+        <Card>
+          <h2 className="mb-1 text-sm font-semibold text-white">
             {wallet ? 'Link a different wallet' : 'Link a wallet'}
           </h2>
           <p className="mb-3 text-xs text-slate-500">
@@ -133,7 +132,7 @@ export function WalletPage() {
               href="https://app.keeperhub.com"
               target="_blank"
               rel="noreferrer"
-              className="underline"
+              className="text-indigo-400 hover:text-indigo-300"
             >
               app.keeperhub.com
             </a>{' '}
@@ -146,56 +145,54 @@ export function WalletPage() {
               onChange={(e) => setLinkAddress(e.target.value)}
               placeholder="Wallet address (0x...)"
               required
-              className="rounded-md border border-slate-300 px-3 py-2 font-mono text-sm"
+              className={`font-mono ${inputClass}`}
             />
             <input
               value={linkIntegrationId}
               onChange={(e) => setLinkIntegrationId(e.target.value)}
               placeholder="KeeperHub integration ID"
               required
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className={inputClass}
             />
-            <button
-              type="submit"
-              disabled={linking}
-              className="w-fit rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-            >
+            <Button type="submit" disabled={linking} className="w-fit">
               {linking ? 'Linking…' : wallet ? 'Re-link' : 'Link wallet'}
-            </button>
+            </Button>
           </form>
-        </section>
+        </Card>
       )}
 
       {wallet && (
         <section>
-          <h2 className="mb-3 text-sm font-semibold text-slate-900">Payment authorizations</h2>
+          <h2 className="mb-3 text-sm font-semibold text-white">Payment authorizations</h2>
           {authorizations.length === 0 ? (
             <p className="text-sm text-slate-500">None yet.</p>
           ) : (
-            <table className="w-full border-collapse text-left text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 text-slate-500">
-                  <th className="py-2 pr-4 font-medium">Decided</th>
-                  <th className="py-2 pr-4 font-medium">Amount</th>
-                  <th className="py-2 pr-4 font-medium">Status</th>
-                  <th className="py-2 pr-4 font-medium">Reason</th>
-                </tr>
-              </thead>
-              <tbody>
-                {authorizations.map((auth) => (
-                  <tr key={auth.id} className="border-b border-slate-100">
-                    <td className="py-2 pr-4 text-slate-500">
-                      {new Date(auth.decidedAt).toLocaleString()}
-                    </td>
-                    <td className="py-2 pr-4">
-                      {auth.amount} {auth.asset}
-                    </td>
-                    <td className="py-2 pr-4">{auth.status}</td>
-                    <td className="py-2 pr-4 text-slate-500">{auth.reason ?? '—'}</td>
+            <div className="overflow-x-auto rounded-xl border border-slate-800">
+              <table className="w-full border-collapse text-left text-sm">
+                <thead>
+                  <tr className="border-b border-slate-800 text-slate-500">
+                    <th className="py-2 pl-4 pr-4 font-medium">Decided</th>
+                    <th className="py-2 pr-4 font-medium">Amount</th>
+                    <th className="py-2 pr-4 font-medium">Status</th>
+                    <th className="py-2 pr-4 font-medium">Reason</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {authorizations.map((auth) => (
+                    <tr key={auth.id} className="border-b border-slate-800/60 last:border-0 hover:bg-slate-900/40">
+                      <td className="py-2 pl-4 pr-4 text-slate-500">
+                        {new Date(auth.decidedAt).toLocaleString()}
+                      </td>
+                      <td className="py-2 pr-4 text-slate-200">
+                        {auth.amount} {auth.asset}
+                      </td>
+                      <td className="py-2 pr-4 text-slate-200">{auth.status}</td>
+                      <td className="py-2 pr-4 text-slate-500">{auth.reason ?? '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </section>
       )}

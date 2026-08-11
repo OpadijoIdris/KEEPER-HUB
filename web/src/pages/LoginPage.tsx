@@ -17,7 +17,7 @@ export function LoginPage() {
     setSubmitting(true);
     try {
       await login(email, password);
-      navigate('/settings');
+      navigate('/agents');
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.');
     } finally {
@@ -26,44 +26,57 @@ export function LoginPage() {
   }
 
   return (
-    <div className="mx-auto mt-16 max-w-sm">
-      <h1 className="mb-6 text-2xl font-semibold text-slate-900">Log in</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1 text-sm text-slate-700">
-          Email
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="rounded-md border border-slate-300 px-3 py-2"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm text-slate-700">
-          Password
-          <input
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="rounded-md border border-slate-300 px-3 py-2"
-          />
-        </label>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={submitting}
-          className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-        >
-          {submitting ? 'Logging in…' : 'Log in'}
-        </button>
-      </form>
-      <p className="mt-4 text-sm text-slate-500">
-        No account?{' '}
-        <Link to="/register" className="font-medium text-slate-900 underline">
-          Register
-        </Link>
-      </p>
+    <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4">
+      <div className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-900/60 p-8 shadow-2xl shadow-black/40 backdrop-blur">
+        <div className="mb-8 text-center">
+          <h1 className="bg-gradient-to-r from-indigo-400 to-sky-400 bg-clip-text text-2xl font-bold text-transparent">
+            Welcome back
+          </h1>
+          <p className="mt-1 text-sm text-slate-400">Log in to your KeeperHub account</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <label className="flex flex-col gap-1.5 text-sm text-slate-300">
+            Email address
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2.5 text-white placeholder-slate-500 outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5 text-sm text-slate-300">
+            Password
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2.5 text-white placeholder-slate-500 outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400"
+            />
+          </label>
+
+          {error && <p className="text-sm text-red-400">{error}</p>}
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="mt-2 rounded-lg bg-gradient-to-r from-indigo-500 to-sky-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:from-indigo-400 hover:to-sky-400 disabled:opacity-50"
+          >
+            {submitting ? 'Logging in…' : 'Log in'}
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-sm text-slate-400">
+          Don't have an account?{' '}
+          <Link to="/register" className="font-medium text-sky-400 hover:text-sky-300">
+            Sign up here
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

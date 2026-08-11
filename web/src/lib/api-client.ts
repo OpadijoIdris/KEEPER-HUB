@@ -70,6 +70,15 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
       return apiFetch<T>(path, { ...options, isRetry: true });
     }
     tokenStore.clear();
+    // Every page that calls apiFetch would otherwise need its own catch for
+    // this one case — easy to forget (see SettingsPage, which didn't have
+    // one: an expired session left it stuck on "Loading…" forever behind an
+    // unhandled promise rejection instead of bouncing to /login). Handled
+    // once, here, since apiFetch is the only place that actually knows the
+    // session is unrecoverable.
+    if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+      window.location.href = '/login';
+    }
     throw new UnauthenticatedError();
   }
 
