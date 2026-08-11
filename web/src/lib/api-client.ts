@@ -52,6 +52,9 @@ async function refreshAccessToken(): Promise<boolean> {
   return true;
 }
 
+/** Public, unauthenticated endpoints — a 401 from these means bad credentials, never an expired session. */
+const UNAUTHENTICATED_PATHS = ['/auth/login', '/auth/register'];
+
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const accessToken = tokenStore.getAccessToken();
 
@@ -64,7 +67,8 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
 
-  if (response.status === 401 && !options.isRetry) {
+  const isUnauthenticatedEndpoint = UNAUTHENTICATED_PATHS.some((p) => path.startsWith(p));
+  if (response.status === 401 && !options.isRetry && !isUnauthenticatedEndpoint) {
     const refreshed = await refreshAccessToken();
     if (refreshed) {
       return apiFetch<T>(path, { ...options, isRetry: true });
