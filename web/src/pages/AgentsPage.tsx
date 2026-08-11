@@ -67,10 +67,20 @@ export function AgentsPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="text-xl font-bold tracking-tight text-white">Agents</h1>
+      <div>
+        <h1 className="text-xl font-bold tracking-tight text-white">Agents</h1>
+        <p className="mt-1 text-sm text-slate-400">
+          Each agent reasons over context you give it and decides whether to act — but it can't
+          spend or execute anything until you also set its policy, link a wallet, and activate it.
+        </p>
+      </div>
 
       <Card>
-        <h2 className="mb-3 text-sm font-semibold text-white">New agent</h2>
+        <h2 className="mb-1 text-sm font-semibold text-white">New agent</h2>
+        <p className="mb-3 text-xs text-slate-500">
+          This only registers the agent, in <code className="text-slate-400">draft</code> status —
+          the rest of its setup happens on its detail page after you create it.
+        </p>
         <form onSubmit={createAgent} className="flex flex-col gap-2">
           <input
             value={name}

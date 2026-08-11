@@ -167,6 +167,12 @@ export function AgentDetailPage() {
       <Card>
         <h2 className="mb-2 text-sm font-semibold text-white">Rules</h2>
         <p className="text-sm text-slate-300">{agent.rules}</p>
+        <p className="mt-3 text-xs text-slate-500">
+          <code className="text-slate-400">active</code> is required before a decision here counts
+          as "live" — <code className="text-slate-400">draft</code>/<code className="text-slate-400">paused</code>/
+          <code className="text-slate-400">retired</code> agents can still be evaluated manually below, but
+          won't be picked up by the scheduled auto-evaluation loop if one is running.
+        </p>
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <Button
             variant="success"
@@ -208,7 +214,12 @@ export function AgentDetailPage() {
       </Card>
 
       <Card>
-        <h2 className="mb-3 text-sm font-semibold text-white">Policy</h2>
+        <h2 className="mb-1 text-sm font-semibold text-white">Policy</h2>
+        <p className="mb-3 text-xs text-slate-500">
+          Enforced independently of the AI — even an "execute" decision below is checked against
+          these limits before anything reaches KeeperHub, and gets rejected (not blocked from
+          deciding, just from acting) if it doesn't fit.
+        </p>
         {policy && (
           <form onSubmit={savePolicy} className="flex flex-col gap-3">
             <label className={labelClass}>

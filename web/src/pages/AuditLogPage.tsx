@@ -43,7 +43,13 @@ export function AuditLogPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-bold tracking-tight text-white">Audit log</h1>
+      <div>
+        <h1 className="text-xl font-bold tracking-tight text-white">Audit log</h1>
+        <p className="mt-1 text-sm text-slate-400">
+          Every domain event recorded platform-wide — policy changes, wallet links, executions,
+          decisions — in one place. Admin-only. Click a row to expand its raw event payload.
+        </p>
+      </div>
 
       <div className="flex gap-2">
         <input

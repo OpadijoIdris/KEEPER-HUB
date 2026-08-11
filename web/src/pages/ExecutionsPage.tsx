@@ -121,7 +121,13 @@ export function ExecutionsPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="text-xl font-bold tracking-tight text-white">Executions</h1>
+      <div>
+        <h1 className="text-xl font-bold tracking-tight text-white">Executions</h1>
+        <p className="mt-1 text-sm text-slate-400">
+          Every on-chain action taken on an agent's behalf — whether the AI decided to act, or you
+          triggered one directly below, skipping the AI entirely.
+        </p>
+      </div>
 
       <Card className="border-amber-500/30 bg-amber-500/[0.04]">
         <h2 className="mb-3 text-sm font-semibold text-white">New transfer</h2>
@@ -172,7 +178,13 @@ export function ExecutionsPage() {
       </Card>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold text-white">Agent execution history</h2>
+        <h2 className="mb-1 text-sm font-semibold text-white">Agent execution history</h2>
+        <p className="mb-3 text-xs text-slate-500">
+          A <code className="text-slate-400">submitted</code> execution moves to{' '}
+          <code className="text-slate-400">confirmed</code> or <code className="text-slate-400">failed</code>{' '}
+          on its own within about 30 seconds — <strong>Refresh</strong> forces an immediate check,
+          it isn't required.
+        </p>
         <form onSubmit={loadExecutions} className="mb-3 flex gap-2">
           <input
             value={agentId}
@@ -234,7 +246,13 @@ export function ExecutionsPage() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold text-white">Browse available protocol actions</h2>
+        <h2 className="mb-1 text-sm font-semibold text-white">Browse available protocol actions</h2>
+        <p className="mb-3 text-xs text-slate-500">
+          Pre-built DeFi actions (Aave, Compound, Uniswap, and others) an agent's policy can allow
+          it to call directly — addressed as <code className="text-slate-400">protocol/action-slug</code>,
+          e.g. <code className="text-slate-400">aave-v3/supply</code>. Reference only; triggering one
+          happens through an agent's policy + evaluation, not from here.
+        </p>
         <form onSubmit={searchActions} className="mb-3 flex gap-2">
           <input
             value={protocolQuery}

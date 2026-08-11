@@ -97,7 +97,13 @@ export function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-bold tracking-tight text-white">Settings</h1>
+      <div>
+        <h1 className="text-xl font-bold tracking-tight text-white">Settings</h1>
+        <p className="mt-1 text-sm text-slate-400">
+          Preferences that apply to you as a user, account-wide — not agent-specific policy, which
+          lives on each agent's own detail page instead.
+        </p>
+      </div>
 
       <Card>
         <h2 className="mb-3 text-sm font-semibold text-white">Timezone</h2>
@@ -120,7 +126,11 @@ export function SettingsPage() {
       </Card>
 
       <Card>
-        <h2 className="mb-3 text-sm font-semibold text-white">Notification channels</h2>
+        <h2 className="mb-1 text-sm font-semibold text-white">Notification channels</h2>
+        <p className="mb-3 text-xs text-slate-500">
+          Which channels get notified when one of your agents' executions completes. The bell icon
+          in the header always shows completions in-app regardless of these toggles.
+        </p>
         <div className="flex flex-col gap-3">
           {preferences.notificationPreferences.map((pref) => (
             <label key={pref.channel} className="flex items-center gap-3 text-sm text-slate-300">
@@ -137,7 +147,10 @@ export function SettingsPage() {
       </Card>
 
       <Card>
-        <h2 className="mb-3 text-sm font-semibold text-white">Platform feature flags</h2>
+        <h2 className="mb-1 text-sm font-semibold text-white">Platform feature flags</h2>
+        <p className="mb-3 text-xs text-slate-500">
+          Read-only — set globally by the platform, not something you control from here.
+        </p>
         {Object.keys(featureFlags).length === 0 ? (
           <p className="text-sm text-slate-500">No flags set yet.</p>
         ) : (

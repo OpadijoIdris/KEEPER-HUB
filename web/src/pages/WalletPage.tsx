@@ -94,7 +94,14 @@ export function WalletPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-bold tracking-tight text-white">Wallet</h1>
+      <div>
+        <h1 className="text-xl font-bold tracking-tight text-white">Wallet</h1>
+        <p className="mt-1 text-sm text-slate-400">
+          Look up any agent by ID to see its linked wallet and spend history, or link one so it
+          can pay for its own executions. Find an agent's ID faster via its detail page's "View
+          wallet" link instead of typing it here.
+        </p>
+      </div>
 
       <form onSubmit={lookup} className="flex gap-2">
         <input
@@ -163,7 +170,11 @@ export function WalletPage() {
 
       {wallet && (
         <section>
-          <h2 className="mb-3 text-sm font-semibold text-white">Payment authorizations</h2>
+          <h2 className="mb-1 text-sm font-semibold text-white">Payment authorizations</h2>
+          <p className="mb-3 text-xs text-slate-500">
+            Every spend this wallet's agent attempted, whether its policy approved it or rejected
+            it — rejections show up here too, not just successful ones.
+          </p>
           {authorizations.length === 0 ? (
             <p className="text-sm text-slate-500">None yet.</p>
           ) : (
