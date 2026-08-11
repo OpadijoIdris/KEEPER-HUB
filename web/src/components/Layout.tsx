@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../lib/auth-context';
 import { PageTransition } from './ui/PageTransition';
+import { NotificationBell } from './NotificationBell';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
@@ -38,6 +39,7 @@ export function Layout() {
             </nav>
           </div>
           <div className="flex items-center gap-3 text-sm">
+            <NotificationBell />
             {user && (
               <span className="rounded-full bg-slate-800 px-2.5 py-0.5 text-xs font-medium text-slate-400">
                 {user.role}
