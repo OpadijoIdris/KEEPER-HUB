@@ -3,12 +3,14 @@ import { AgentPolicy } from './agent-policy.entity';
 describe('AgentPolicy', () => {
   it('rejects any action kind by default (empty allowedActions)', () => {
     const policy = AgentPolicy.createDefault('agent-1');
-    expect(policy.permits('transfer', '0', 0)).toBe(false);
+    const result = policy.permits('transfer', '0', 0);
+    expect(result.permitted).toBe(false);
+    expect(result.reason).toMatch(/not in this agent's allowed-actions list/);
   });
 
   it('allows a transfer with an empty destination allowlist (fail-open)', () => {
     const policy = AgentPolicy.fromPersistence('policy-1', 'agent-1', '1', ['transfer'], []);
-    expect(policy.permits('transfer', '0.5', 0, '0xAbC')).toBe(true);
+    expect(policy.permits('transfer', '0.5', 0, '0xAbC').permitted).toBe(true);
   });
 
   it('allows a transfer to an address on the allowlist, case-insensitively', () => {
@@ -19,7 +21,7 @@ describe('AgentPolicy', () => {
       ['transfer'],
       ['0xAbC123'],
     );
-    expect(policy.permits('transfer', '0.5', 0, '0xabc123')).toBe(true);
+    expect(policy.permits('transfer', '0.5', 0, '0xabc123').permitted).toBe(true);
   });
 
   it('rejects a transfer to an address not on the allowlist', () => {
@@ -30,7 +32,9 @@ describe('AgentPolicy', () => {
       ['transfer'],
       ['0xAbC123'],
     );
-    expect(policy.permits('transfer', '0.5', 0, '0xDeadBeef')).toBe(false);
+    const result = policy.permits('transfer', '0.5', 0, '0xDeadBeef');
+    expect(result.permitted).toBe(false);
+    expect(result.reason).toMatch(/not on this agent's allowed-destinations list/);
   });
 
   it('does not destination-check non-transfer kinds even with a populated allowlist', () => {
@@ -41,7 +45,7 @@ describe('AgentPolicy', () => {
       ['protocol_action'],
       ['0xAbC123'],
     );
-    expect(policy.permits('protocol_action', '0', 0, '0xDeadBeef')).toBe(true);
+    expect(policy.permits('protocol_action', '0', 0, '0xDeadBeef').permitted).toBe(true);
   });
 
   it('still enforces the cumulative spend cap alongside the destination check', () => {
@@ -52,7 +56,9 @@ describe('AgentPolicy', () => {
       ['transfer'],
       ['0xAbC123'],
     );
-    expect(policy.permits('transfer', '0.5', 0.6, '0xAbC123')).toBe(false);
+    const result = policy.permits('transfer', '0.5', 0.6, '0xAbC123');
+    expect(result.permitted).toBe(false);
+    expect(result.reason).toMatch(/would exceed the spend limit/);
   });
 
   it('update() replaces allowedDestinations only when explicitly passed', () => {

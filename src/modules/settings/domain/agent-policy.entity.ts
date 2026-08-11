@@ -1,6 +1,12 @@
 import { randomUUID } from 'crypto';
 import { Entity } from '../../../shared/domain/entity.base';
 
+export interface PolicyCheckResult {
+  permitted: boolean;
+  /** Only set when permitted is false — which specific check failed. */
+  reason?: string;
+}
+
 /**
  * One per agent, created lazily on first read (same idempotent-link
  * pattern as Wallet's AgentWallet). The actual spend-limit/allowed-action
@@ -73,14 +79,31 @@ export class AgentPolicy extends Entity<string> {
     amount: string,
     cumulativeSpendSoFar: number,
     destinationAddress?: string,
-  ): boolean {
-    if (!this._allowedActions.includes(kind)) return false;
+  ): PolicyCheckResult {
+    if (!this._allowedActions.includes(kind)) {
+      return {
+        permitted: false,
+        reason: `action kind "${kind}" is not in this agent's allowed-actions list`,
+      };
+    }
     if (kind === 'transfer' && this._allowedDestinations.length > 0 && destinationAddress) {
       const allowed = this._allowedDestinations.some(
         (address) => address.toLowerCase() === destinationAddress.toLowerCase(),
       );
-      if (!allowed) return false;
+      if (!allowed) {
+        return {
+          permitted: false,
+          reason: `destination address ${destinationAddress} is not on this agent's allowed-destinations list`,
+        };
+      }
     }
-    return cumulativeSpendSoFar + Number(amount) <= Number(this._spendLimit);
+    const withinLimit = cumulativeSpendSoFar + Number(amount) <= Number(this._spendLimit);
+    if (!withinLimit) {
+      return {
+        permitted: false,
+        reason: `amount ${amount} would exceed the spend limit (already spent ${cumulativeSpendSoFar} of ${this._spendLimit})`,
+      };
+    }
+    return { permitted: true };
   }
 }

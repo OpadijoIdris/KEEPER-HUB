@@ -72,7 +72,7 @@ export class WalletService {
   ): Promise<PaymentAuthorization> {
     const wallet = await this.getWallet(agentId);
     const cumulativeSpendSoFar = await this.authorizations.sumAuthorizedAmount(agentId);
-    const permitted = await this.agentPolicyService.permits(
+    const check = await this.agentPolicyService.permits(
       agentId,
       kind,
       amount,
@@ -80,7 +80,7 @@ export class WalletService {
       destinationAddress,
     );
 
-    const authorization = permitted
+    const authorization = check.permitted
       ? PaymentAuthorization.authorize(wallet.id, agentId, kind, amount, asset)
       : PaymentAuthorization.reject(
           wallet.id,
@@ -88,7 +88,7 @@ export class WalletService {
           kind,
           amount,
           asset,
-          `Agent policy does not permit "${kind}" of amount ${amount} (already spent ${cumulativeSpendSoFar} against its policy limit).`,
+          `Agent policy rejected this "${kind}": ${check.reason}.`,
         );
 
     await this.authorizations.save(authorization);

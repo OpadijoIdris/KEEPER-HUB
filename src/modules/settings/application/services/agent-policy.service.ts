@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { AgentPolicy } from '../../domain/agent-policy.entity';
+import type { PolicyCheckResult } from '../../domain/agent-policy.entity';
 import { AGENT_POLICY_REPOSITORY } from '../../domain/ports/agent-policy.repository';
 import type { AgentPolicyRepository } from '../../domain/ports/agent-policy.repository';
 
@@ -32,7 +33,7 @@ export class AgentPolicyService {
     amount: string,
     cumulativeSpendSoFar: number,
     destinationAddress?: string,
-  ): Promise<boolean> {
+  ): Promise<PolicyCheckResult> {
     const policy = await this.get(agentId);
     return policy.permits(kind, amount, cumulativeSpendSoFar, destinationAddress);
   }
