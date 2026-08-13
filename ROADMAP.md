@@ -158,7 +158,8 @@ the modules that consume events from execution (notifications, analytics).
       GET defaults without persisting, PATCH persists both timezone+channel in one round trip,
       GET/PATCH on another user's preferences → 403, unauthenticated → 401, feature-flags readable
       by any authenticated user, write rejected for non-admin → 403.
-- [ ] 2.1b `AgentPolicy` — bundled into 2.6 (AI module), needs `Agent.ownerId` to exist first
+- [x] 2.1b `AgentPolicy` ✅ (2026-08-11) — bundled into 2.6 (AI module) as planned, shipped and
+      verified together — see 2.6 below.
 - [x] 2.2 **Audit Logs** ✅ (2026-07-15) — `AuditEntry` (leaf aggregate, append-only by omission —
       no update/delete method exists anywhere in the chain), `AuditEventSubscriber` via the event
       bus's new `subscribeToAll()`. Required extending the shared `DomainEvent` base with
@@ -193,8 +194,18 @@ the modules that consume events from execution (notifications, analytics).
       the actual `execute_transfer`/`execute_protocol_action` write path — that moves real funds,
       and the user chose to hold that off for Day 4's full demo run rather than exercise it
       incidentally during module verification.
-- [ ] 2.6 **AI** — LangChain agent runner: Agent + Decision entities, rule evaluation, ties
-      Wallet + KeeperHub Integration together. `AgentPolicy` (2.1b) added here.
+- [x] 2.6 **AI** ✅ (2026-08-11) — LangChain agent runner (`OxloAgentReasoningAdapter`): Agent +
+      Decision entities, rule evaluation, ties Wallet + KeeperHub Integration together.
+      `AgentPolicy` (2.1b) added here. **Verified against the real Oxlo.ai API and the live
+      Render deployment, not just unit tests**: `POST /agents/:id/evaluate` with
+      `{"currentApy": "5.2%"}` correctly reasoned `skip` (below the rule's 8% threshold); with
+      `{"currentApy": "9.5%"}` correctly flipped to `execute`, with real model-generated
+      rationale text, and dispatched into `ExecutionService.executeTransfer` — which
+      `AgentPolicy` then correctly rejected (100 USDC vs. a 0.01 spend limit), proving the full
+      "AI decides → Wallet/Policy gates independently" chain wired together end to end, not just
+      each half in isolation. Every decision persisted and showed up in both the Decision log and
+      the admin audit log. **Not verified**: an `execute` decision resolving to a
+      `protocol_action` (only `transfer`-kind decisions were exercised).
 - [ ] ~~2.7 Notifications~~ — cut (5-day reframe, see "Known deferred hardening")
 - [ ] ~~2.8 Analytics~~ — cut (5-day reframe, see "Known deferred hardening")
 
@@ -225,7 +236,12 @@ the modules that consume events from execution (notifications, analytics).
       understand this moves real funds" checkbox. Build + lint clean; not click-tested live today
       (same real-funds reasoning as the backend verification note above) — first live use is the
       Day 4 demo run.
-- [ ] F7 **Agent list/detail + policy config + decision log** (matches 2.6, includes 2.1b AgentPolicy UI)
+- [x] F7 **Agent list/detail + policy config + decision log** ✅ (2026-08-11) — matches 2.6,
+      includes 2.1b AgentPolicy UI. **Click-tested live against the deployed frontend**: created
+      an agent, set spend limit + allowed actions, activated it, ran "Evaluate now" with both a
+      below-threshold and an above-threshold trigger context and watched the decision log update
+      with `skip` then `execute` in real time, followed the resulting execution link through to
+      the Executions page.
 - [ ] ~~F8 Notifications~~ / ~~F9 Analytics~~ — cut with their backend modules (5-day reframe)
 
 From here forward: typecheck + lint + build + curl/HTTP smoke test per feature (not full unit
